@@ -7,143 +7,163 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --pk-red: #ff1f1f; --pk-blue: #3b4cca; --pk-yellow: #ffde00;
-            --dark: #0f172a; --glass: rgba(255, 255, 255, 0.1);
+            --pk-red: #e3350d; --pk-blue: #3164b3; --pk-yellow: #fbd743;
+            --dark: #0b0f19; --panel: #1e293b; --glass: rgba(255, 255, 255, 0.05);
             --hp-green: #22c55e; --hp-yellow: #eab308; --hp-red: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #020617; color: white; height: 100vh; display: flex; justify-content: center; overflow: hidden; }
+        body { background: #02040a; color: white; height: 100vh; display: flex; justify-content: center; overflow: hidden; }
 
         #game-container {
             width: 100%; max-width: 480px; height: 100%; background: var(--dark);
-            position: relative; display: flex; flex-direction: column; border: 1px solid #1e293b;
+            position: relative; display: flex; flex-direction: column; border: 1px solid #1e293b; box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
         .screen { position: absolute; inset: 0; padding: 20px; display: none; flex-direction: column; z-index: 10; background: var(--dark); }
         .active { display: flex; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* HUD */
-        .hud { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--glass); border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
-        .coin-box { color: var(--pk-yellow); font-weight: 800; }
+        /* HUD & UI */
+        .hud { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--panel); border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .coin-box { color: var(--pk-yellow); font-weight: 900; letter-spacing: 1px; }
 
         /* Seleção */
         .pkmn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; overflow-y: auto; flex: 1; padding: 10px 5px; }
-        .pkmn-card { background: #1e293b; border-radius: 12px; padding: 10px; text-align: center; border: 2px solid transparent; cursor: pointer; transition: 0.2s; position: relative; }
-        .pkmn-card.selected { border-color: var(--pk-yellow); background: #334155; transform: scale(1.05); }
-        .pkmn-card img { width: 100%; max-width: 70px; }
-        .pkmn-card p { font-size: 0.65rem; text-transform: uppercase; font-weight: bold; margin-top: 5px; color: #cbd5e1; }
+        .pkmn-card { background: var(--panel); border-radius: 12px; padding: 10px; text-align: center; border: 2px solid transparent; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .pkmn-card.selected { border-color: var(--pk-yellow); background: #334155; transform: scale(1.05); box-shadow: 0 0 15px rgba(251, 215, 67, 0.2); }
+        .pkmn-card img { width: 100%; max-width: 75px; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5)); transition: 0.2s; }
+        .pkmn-card.selected img { transform: scale(1.1); }
+        .pkmn-card p { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-top: 5px; color: #cbd5e1; }
 
         /* Arena */
         .arena { 
-            flex: 1; position: relative; border-radius: 20px; border: 2px solid #334155; margin-bottom: 15px; overflow: hidden;
-            background: linear-gradient(to bottom, #1e40af 0%, #1e1b4b 100%); 
+            flex: 1; position: relative; border-radius: 20px; border: 3px solid #334155; margin-bottom: 15px; overflow: hidden;
+            background: radial-gradient(circle at top, #1e40af 0%, #020617 100%); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
-        .sprite { position: absolute; transition: 0.4s ease; z-index: 2; width: 130px; }
-        .enemy-sprite { top: 20%; right: 10%; }
-        .player-sprite { bottom: 8%; left: 8%; width: 160px; }
+        .sprite { position: absolute; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.6)); }
+        .enemy-sprite { top: 15%; right: 5%; width: 140px; }
+        .player-sprite { bottom: 5%; left: 5%; width: 170px; }
         
-        .hit-effect { animation: flash 0.2s 2; }
-        @keyframes flash { 0% { filter: brightness(1); } 50% { filter: brightness(10) sepia(1) saturate(20) hue-rotate(-50deg); } 100% { filter: brightness(1); } }
+        .hit-effect { animation: flash 0.3s ease; }
+        @keyframes flash { 0% { filter: brightness(1) drop-shadow(0 10px 10px rgba(0,0,0,0.6)); } 50% { filter: brightness(5) sepia(1) hue-rotate(-50deg) saturate(5); transform: scale(1.1) rotate(5deg); } 100% { filter: brightness(1) drop-shadow(0 10px 10px rgba(0,0,0,0.6)); } }
 
         /* HP Bars */
-        .hp-box { position: absolute; background: rgba(15, 23, 42, 0.9); padding: 8px; border-radius: 10px; width: 140px; border: 1px solid #475569; z-index: 5; }
+        .hp-box { position: absolute; background: rgba(15, 23, 42, 0.85); padding: 10px; border-radius: 12px; width: 150px; border: 1px solid #475569; z-index: 5; backdrop-filter: blur(4px); }
         .enemy-hp { top: 20px; left: 20px; border-left: 4px solid var(--pk-red); }
-        .player-hp { bottom: 130px; right: 20px; border-right: 4px solid var(--pk-blue); }
-
-        .hp-bar { height: 6px; background: #334155; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-        .hp-fill { height: 100%; width: 100%; transition: width 0.5s ease; background: var(--hp-green); }
+        .player-hp { bottom: 120px; right: 20px; border-right: 4px solid var(--pk-blue); }
+        .hp-bar { height: 8px; background: #0f172a; border-radius: 4px; margin-top: 6px; overflow: hidden; border: 1px solid #000; }
+        .hp-fill { height: 100%; width: 100%; transition: width 0.4s ease, background-color 0.4s ease; background: var(--hp-green); }
 
         /* Botões */
-        .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s; color: white; margin-bottom: 5px; }
-        .btn-move { background: #334155; text-align: left; display: flex; flex-direction: column; font-size: 0.7rem; }
-        .btn-special { background: var(--pk-red); box-shadow: 0 4px 0 #991b1b; }
-        .btn-outline { background: transparent; border: 2px solid #475569; }
+        .battle-ui { display: flex; flex-direction: column; gap: 8px; }
+        .move-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { border: none; padding: 16px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.2s; color: white; letter-spacing: 0.5px; }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-move { background: var(--panel); text-align: left; display: flex; flex-direction: column; font-size: 0.75rem; border: 1px solid #334155; box-shadow: 0 4px 0 #0f172a; }
+        .btn-move span { font-size: 0.6rem; color: #94a3b8; margin-top: 3px; }
+        .btn-special { background: linear-gradient(135deg, var(--pk-red), #991b1b); box-shadow: 0 4px 0 #7f1d1d; text-align: center; }
+        .btn-outline { background: transparent; border: 2px solid var(--pk-blue); color: var(--pk-blue); box-shadow: 0 4px 0 #1e3a8a; text-align: center; }
 
-        #log { height: 65px; background: rgba(0,0,0,0.5); padding: 8px; font-size: 0.75rem; overflow-y: auto; border-radius: 10px; margin-bottom: 8px; border: 1px solid #334155; color: #e2e8f0; }
-
-        /* Loader */
-        #loader { position: fixed; inset: 0; background: #020617; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #log { height: 70px; background: rgba(0,0,0,0.6); padding: 10px; font-size: 0.8rem; overflow-y: auto; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; color: #f8fafc; font-weight: 500; }
+        
+        /* Modais */
+        .modal-overlay { position: absolute; inset: 0; background: rgba(2,6,23,0.95); z-index: 100; display: none; padding: 20px; flex-direction: column; backdrop-filter: blur(5px); }
+        
+        #loader { position: fixed; inset: 0; background: #02040a; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #1e293b; border-top-color: var(--pk-red); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        #multi-id-display { background: #1e293b; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 1.2rem; color: var(--pk-yellow); margin: 10px 0; border: 1px dashed var(--pk-yellow); }
+        #multi-id-display { background: var(--panel); padding: 15px; border-radius: 12px; font-family: monospace; font-size: 1.5rem; color: var(--pk-yellow); margin: 15px 0; border: 2px dashed var(--pk-yellow); letter-spacing: 2px; }
+        input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #334155; background: #0f172a; color: white; font-size: 1rem; text-align: center; font-weight: bold; margin-bottom: 15px; outline: none; }
+        input[type="text"]:focus { border-color: var(--pk-blue); }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <p id="loader-msg" style="margin-top: 15px; color: var(--pk-yellow); font-weight: bold;">PREPARANDO ARENA...</p>
+    <p id="loader-msg" style="margin-top: 20px; color: var(--pk-yellow); font-weight: bold; letter-spacing: 1px;">PREPARANDO ARENA...</p>
 </div>
 
 <div id="game-container">
     <section id="screen-home" class="screen active">
         <div class="hud">
             <div class="coin-box">🪙 <span id="h-coins">500</span></div>
-            <div>RANK <span id="h-lv">1</span></div>
+            <div style="font-weight: bold; color: #cbd5e1;">RANK <span id="h-lv" style="color: white;">1</span></div>
         </div>
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-            <h1 style="font-size: 3rem; color: var(--pk-red); text-shadow: 2px 2px var(--pk-blue);">POKÉ<br>STAKES</h1>
-            <p style="opacity: 0.5;">MULTPLAYER P2P ONLINE</p>
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" style="width: 70px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));">
+            <h1 style="font-size: 3.5rem; color: var(--pk-red); text-shadow: 3px 3px var(--pk-blue); line-height: 0.9;">POKÉ<br>STAKES</h1>
+            <p style="margin-top: 15px; color: var(--pk-yellow); font-weight: 800; letter-spacing: 2px; font-size: 0.9rem;">PLATINUM ONLINE</p>
         </div>
-        <button class="btn btn-special" onclick="showSelect(false)">SOLO (CONTRA BOT)</button>
+        <button class="btn btn-special" style="margin-bottom: 15px;" onclick="showSelect(false)">SOLO (CONTRA CPU)</button>
         <button class="btn btn-outline" onclick="showMultiMenu()">MULTIPLAYER 1V1</button>
     </section>
 
     <section id="screen-multi-menu" class="screen" style="justify-content: center;">
-        <h2 style="text-align: center; margin-bottom: 20px;">MODO ONLINE</h2>
-        <button class="btn btn-special" onclick="createRoom()">CRIAR SALA</button>
-        <div style="margin: 20px 0; text-align: center; opacity: 0.5;">— OU —</div>
-        <input type="text" id="join-id" placeholder="ID DO AMIGO" style="padding: 15px; border-radius: 10px; border: none; margin-bottom: 10px; text-align: center;">
-        <button class="btn btn-outline" onclick="joinRoom()">ENTRAR NA SALA</button>
-        <button class="btn btn-move" style="margin-top: 20px; align-items: center;" onclick="showScreen('screen-home')">VOLTAR</button>
+        <h2 style="text-align: center; margin-bottom: 30px; font-size: 1.8rem;">SALA ONLINE</h2>
+        <button class="btn btn-special" style="margin-bottom: 30px;" onclick="createRoom()">CRIAR SALA</button>
+        <div style="text-align: center; color: #64748b; font-weight: bold; margin-bottom: 30px;">— OU ENTRE EM UMA —</div>
+        <input type="text" id="join-id" placeholder="COLE O ID DO AMIGO AQUI">
+        <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="joinRoom()">ENTRAR NA SALA</button>
+        <button class="btn btn-move" style="text-align: center; margin-top: auto;" onclick="showScreen('screen-home')">VOLTAR</button>
     </section>
 
     <section id="screen-wait" class="screen" style="justify-content: center; text-align: center;">
-        <h2>SALA CRIADA!</h2>
-        <p style="margin-top: 10px; opacity: 0.7;">Envie este ID para seu amigo:</p>
+        <h2 style="color: var(--hp-green);">SALA CRIADA!</h2>
+        <p style="margin-top: 15px; color: #cbd5e1;">Mande este código para seu amigo:</p>
         <div id="multi-id-display">-------</div>
-        <p id="wait-status">Aguardando oponente entrar...</p>
+        <div class="spinner" style="margin: 20px auto; width: 30px; height: 30px; border-width: 3px;"></div>
+        <p id="wait-status" style="color: var(--pk-yellow);">Aguardando oponente...</p>
     </section>
 
     <section id="screen-select" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h2 id="select-title">SUA EQUIPE</h2>
-            <div id="sel-count" style="color: var(--pk-yellow); font-weight: bold;">0/6</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: var(--panel); padding: 15px; border-radius: 12px;">
+            <h2 id="select-title" style="font-size: 1.1rem;">MONTE SUA EQUIPE</h2>
+            <div id="sel-count" style="color: var(--pk-yellow); font-weight: 900; font-size: 1.2rem;">0/6</div>
         </div>
         <div class="pkmn-grid" id="pkmn-list"></div>
-        <button id="btn-confirm" class="btn btn-special" disabled onclick="confirmTeam()">PRONTO!</button>
+        <button id="btn-confirm" class="btn btn-special" style="margin-top: 15px;" disabled onclick="confirmTeam()">CONFIRMAR EQUIPE</button>
     </section>
 
     <section id="screen-battle" class="screen">
         <div class="arena">
             <div class="hp-box enemy-hp">
-                <div style="font-size: 0.65rem; font-weight: bold;" id="e-name">---</div>
+                <div style="font-size: 0.7rem; font-weight: 900; color: #e2e8f0;" id="e-name">---</div>
                 <div class="hp-bar"><div id="e-hp-fill" class="hp-fill"></div></div>
             </div>
             <img id="e-sprite" class="sprite enemy-sprite" src="">
             <img id="p-sprite" class="sprite player-sprite" src="">
             <div class="hp-box player-hp">
-                <div style="font-size: 0.65rem; font-weight: bold;" id="p-name">---</div>
+                <div style="font-size: 0.7rem; font-weight: 900; color: #e2e8f0;" id="p-name">---</div>
                 <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
             </div>
         </div>
         <div id="log"></div>
         <div class="battle-ui">
             <div class="move-grid" id="move-cont"></div>
-            <div style="display: flex; gap: 5px;">
-                <button id="switch-btn" class="btn btn-move" style="flex: 1; align-items: center;" onclick="openSwitch()">TROCAR</button>
-                <button id="mega-btn" class="btn btn-special" style="flex: 1; display: none;" onclick="triggerMega()">MEGA</button>
+            <div style="display: flex; gap: 8px;">
+                <button id="switch-btn" class="btn btn-move" style="flex: 1; text-align: center; justify-content: center;" onclick="openSwitch()">TROCAR</button>
+                <button id="mega-btn" class="btn btn-special" style="flex: 1; display: none; box-shadow: 0 0 15px rgba(227, 53, 13, 0.5);" onclick="triggerMega()">MEGA EVOLUIR</button>
             </div>
         </div>
     </section>
 
-    <div id="switch-modal" style="display: none; position: absolute; inset: 0; background: rgba(2,6,23,0.95); z-index: 100; padding: 20px;">
-        <h2 style="margin-bottom: 15px;">TROCAR POKÉMON</h2>
-        <div id="switch-list" class="pkmn-grid"></div>
-        <button class="btn btn-move" style="margin-top: 10px; width: 100%; align-items: center;" onclick="closeSwitch()">CANCELAR</button>
+    <div id="switch-modal" class="modal-overlay">
+        <h2 style="margin-bottom: 20px; color: var(--pk-yellow); text-align: center;">ESCOLHA SEU POKÉMON</h2>
+        <div id="switch-list" class="pkmn-grid" style="margin-bottom: 20px;"></div>
+        <button class="btn btn-move" style="text-align: center; margin-top: auto;" onclick="closeSwitch()">CANCELAR</button>
+    </div>
+
+    <div id="mega-xy-modal" class="modal-overlay" style="justify-content: center;">
+        <h2 style="text-align: center; margin-bottom: 20px; color: var(--pk-yellow);">ESCOLHA A MEGA EVOLUÇÃO</h2>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn btn-special" style="flex: 1; background: #1d4ed8; box-shadow: 0 4px 0 #1e3a8a;" onclick="chooseMega('x')">MEGA X</button>
+            <button class="btn btn-special" style="flex: 1; background: #c2410c; box-shadow: 0 4px 0 #9a3412;" onclick="chooseMega('y')">MEGA Y</button>
+        </div>
+        <button class="btn btn-move" style="text-align: center; margin-top: 20px;" onclick="document.getElementById('mega-xy-modal').style.display='none'">CANCELAR</button>
     </div>
 </div>
 <script>
@@ -164,7 +184,16 @@ let state = {
     peer: null, conn: null, myTurn: false, role: null, megaUsed: false
 };
 
-// --- SISTEMA DE TELAS E MULTIPLAYER ---
+// Sistema de Som
+function playCry(url) {
+    if(url) {
+        let audio = new Audio(url);
+        audio.volume = 0.4;
+        audio.play().catch(e => console.log("Áudio bloqueado pelo navegador até o primeiro clique."));
+    }
+}
+
+// --- SISTEMA DE TELAS ---
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -172,9 +201,13 @@ function showScreen(id) {
 
 function showSelect(multi) {
     state.isMultiplayer = multi;
+    document.getElementById('select-title').innerText = multi ? "EQUIPE ONLINE (1v1)" : "EQUIPE SOLO";
     showScreen('screen-select');
 }
 
+function showMultiMenu() { showScreen('screen-multi-menu'); } // Corrigido o bug do botão!
+
+// --- MULTIPLAYER P2P ---
 function createRoom() {
     state.peer = new Peer();
     state.peer.on('open', id => {
@@ -186,8 +219,8 @@ function createRoom() {
 }
 
 function joinRoom() {
-    const id = document.getElementById('join-id').value;
-    if(!id) return alert("Cole o ID!");
+    const id = document.getElementById('join-id').value.trim();
+    if(!id) return alert("Cole o ID do amigo primeiro!");
     state.peer = new Peer();
     state.peer.on('open', () => {
         state.conn = state.peer.connect(id);
@@ -203,7 +236,7 @@ function setupConn() {
     });
 }
 
-// --- LOGICA DE DADOS ---
+// --- LÓGICA DE DADOS ---
 function init() {
     const list = document.getElementById('pkmn-list');
     ALL_IDS.forEach(id => {
@@ -232,13 +265,12 @@ async function fetchPkmn(id) {
         return {
             name: d.name, type: d.types[0].type.name,
             hp: d.stats[0].base_stat * 2.5 + 115, maxHp: d.stats[0].base_stat * 2.5 + 115,
-            atk: d.stats[1].base_stat, def: d.stats[2].base_stat,
-            spd: d.stats[5].base_stat, bst: d.stats.reduce((a,b) => a + b.base_stat, 0),
+            atk: d.stats[1].base_stat, def: d.stats[2].base_stat, spd: d.stats[5].base_stat, 
+            bst: d.stats.reduce((a,b) => a + b.base_stat, 0),
             sprite: d.sprites.other['official-artwork'].front_default || d.sprites.front_default,
+            cry: d.cries ? d.cries.latest : null, // Puxa o som oficial!
             moves: d.moves.slice(0,15).map(m => ({ 
-                name: m.move.name.replace(/-/g,' '), 
-                pwr: 65, 
-                type: d.types[0].type.name 
+                name: m.move.name.replace(/-/g,' '), pwr: 65, type: d.types[0].type.name 
             })).sort(() => 0.5 - Math.random()).slice(0,4),
             isMega: false
         };
@@ -247,9 +279,11 @@ async function fetchPkmn(id) {
 
 async function confirmTeam() {
     document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loader-msg').innerText = "CAPTURANDO DADOS...";
     state.pTeam = await Promise.all(state.selected.map(id => fetchPkmn(id)));
     if(state.isMultiplayer) {
         state.conn.send({ type: 'TEAM_READY', team: state.pTeam });
+        document.getElementById('loader-msg').innerText = "AGUARDANDO OPONENTE...";
     } else {
         const eIds = Array.from({length: 6}, () => ALL_IDS[Math.floor(Math.random()*ALL_IDS.length)]);
         state.eTeam = await Promise.all(eIds.map(id => fetchPkmn(id)));
@@ -260,7 +294,8 @@ async function confirmTeam() {
 function handleNetworkData(data) {
     if(data.type === 'TEAM_READY') { state.eTeam = data.team; startBattle(); }
     if(data.type === 'ATTACK') executeNetworkAttack(data.move);
-    if(data.type === 'MEGA') executeNetworkMega();
+    if(data.type === 'MEGA') executeNetworkMega(data.sprite);
+    if(data.type === 'SWITCH') executeNetworkSwitch(data.idx);
 }
 
 function startBattle() {
@@ -269,6 +304,7 @@ function startBattle() {
     showScreen('screen-battle');
     document.getElementById('loader').style.display = 'none';
     renderTurn();
+    playCry(state.pTeam[state.pIdx].cry); // Toca o som do primeiro Pokémon
 }
 
 function renderTurn() {
@@ -285,26 +321,121 @@ function renderTurn() {
         const b = document.createElement('button');
         b.className = 'btn btn-move';
         b.disabled = !state.myTurn;
-        b.innerHTML = `<b>${m.name.toUpperCase()}</b><span>TIPO: ${m.type.toUpperCase()}</span>`;
+        b.innerHTML = `<b style="font-size: 0.8rem;">${m.name.toUpperCase()}</b><span>TIPO: ${m.type.toUpperCase()}</span>`;
         b.onclick = () => processAttack(m);
         cont.appendChild(b);
     });
 
+    // Se o inimigo cair, não deixa atacar
+    if(e.hp <= 0 || p.hp <= 0) toggleBtns(false);
+
     document.getElementById('mega-btn').style.display = (p.bst > 450 && !state.megaUsed && !p.isMega) ? 'block' : 'none';
+    document.getElementById('switch-btn').disabled = !state.myTurn;
 }
 
-// --- ANIMAÇÕES DE GOLPE ---
+// --- SISTEMA DE TROCA (CORRIGIDO) ---
+function openSwitch() {
+    if(!state.myTurn && state.isMultiplayer) return; // Não troca fora do turno online
+    const list = document.getElementById('switch-list');
+    list.innerHTML = '';
+    state.pTeam.forEach((p, i) => {
+        const d = document.createElement('div');
+        d.className = 'pkmn-card';
+        d.style.opacity = p.hp <= 0 ? '0.4' : '1';
+        d.innerHTML = `<img src="${p.sprite}"><p>${p.name}</p>
+                       <div style="background:#0f172a; border-radius:4px; margin-top:5px; height:6px; width:100%;">
+                         <div style="background:var(--hp-green); height:100%; width:${(p.hp/p.maxHp)*100}%"></div>
+                       </div>`;
+        if(p.hp > 0 && i !== state.pIdx) {
+            d.onclick = () => { 
+                state.pIdx = i; 
+                closeSwitch(); 
+                addLog(`Vai! ${p.name.toUpperCase()}!`);
+                if(state.isMultiplayer) {
+                    state.conn.send({ type: 'SWITCH', idx: i });
+                    state.myTurn = false; // Perde o turno ao trocar
+                } else {
+                    setTimeout(botTurn, 800); // Bot ataca se vc trocar no offline
+                }
+                renderTurn();
+                playCry(p.cry);
+            };
+        }
+        list.appendChild(d);
+    });
+    document.getElementById('switch-modal').style.display = 'flex';
+}
+
+function closeSwitch() { document.getElementById('switch-modal').style.display = 'none'; }
+
+function executeNetworkSwitch(idx) {
+    state.eIdx = idx;
+    addLog(`Oponente trocou para ${state.eTeam[idx].name.toUpperCase()}!`);
+    state.myTurn = true;
+    renderTurn();
+    playCry(state.eTeam[idx].cry);
+}
+
+// --- MEGA EVOLUÇÃO (COM X E Y) ---
+let pendingMega = null;
+function triggerMega() {
+    const p = state.pTeam[state.pIdx];
+    if(p.name === 'charizard' || p.name === 'mewtwo') {
+        pendingMega = p;
+        document.getElementById('mega-xy-modal').style.display = 'flex';
+    } else {
+        processMega(p, "");
+    }
+}
+
+function chooseMega(type) {
+    document.getElementById('mega-xy-modal').style.display = 'none';
+    processMega(pendingMega, "-" + type);
+}
+
+async function processMega(p, suffix) {
+    addLog(`${p.name.toUpperCase()} reagiu à Mega Stone!`);
+    const img = document.getElementById('p-sprite');
+    img.style.filter = 'brightness(5) contrast(2)';
+    playCry(p.cry);
+    
+    try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.name.toLowerCase()}-mega${suffix}`);
+        if(res.ok) {
+            const d = await res.json();
+            p.sprite = d.sprites.other['official-artwork'].front_default;
+        }
+    } catch(e) { console.log("Mega form visual not found."); }
+
+    p.atk *= 1.6; p.name = "MEGA " + p.name + (suffix ? suffix.toUpperCase() : ""); 
+    p.isMega = true; state.megaUsed = true;
+    
+    if(state.isMultiplayer) state.conn.send({ type: 'MEGA', sprite: p.sprite });
+
+    await new Promise(r => setTimeout(r, 800));
+    img.style.filter = 'none';
+    renderTurn();
+}
+
+function executeNetworkMega(spriteUrl) {
+    const e = state.eTeam[state.eIdx];
+    addLog(`Oponente mega evoluiu!`);
+    e.sprite = spriteUrl;
+    e.atk *= 1.6; e.name = "MEGA " + e.name;
+    renderTurn();
+    playCry(e.cry);
+}
+
+// --- COMBATE ---
 async function playMoveAnim(type, side) {
     const target = document.getElementById(side + '-sprite');
     const colors = { fire: '#ff4d00', water: '#00ccff', grass: '#00ff66', electric: '#ffff00', psychic: '#ff00ff' };
     const color = colors[type] || '#ffffff';
-    
-    // Tremer tela
     target.style.transition = '0.1s';
     for(let i=0; i<4; i++) {
         target.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px)`;
-        target.style.filter = `drop-shadow(0 0 10px ${color}) brightness(2)`;
-        await new Promise(r => setTimeout(r, 50));
+        target.style.filter = `drop-shadow(0 0 15px ${color}) brightness(1.5)`;
+        await new Promise(r => setTimeout(r, 60));
     }
     target.style.transform = 'translate(0,0)';
     target.style.filter = 'none';
@@ -314,7 +445,6 @@ async function processAttack(move) {
     if(!state.myTurn) return;
     state.myTurn = false;
     toggleBtns(false);
-
     if(state.isMultiplayer) state.conn.send({ type: 'ATTACK', move: move });
 
     await hitAction(move, state.pTeam[state.pIdx], state.eTeam[state.eIdx], 'e');
@@ -335,78 +465,59 @@ async function hitAction(move, atk, def, side) {
     const dmg = Math.floor((move.pwr * (atk.atk / def.def) * mult) / 4.5);
     def.hp -= dmg; if(def.hp < 0) def.hp = 0;
     
-    if(mult > 1) addLog("É super efetivo!");
+    if(mult > 1) addLog("<span style='color:var(--pk-yellow)'>É super efetivo!</span>");
+    if(mult < 1) addLog("<span style='color:#94a3b8'>Não é muito efetivo...</span>");
     updateBars();
-}
-
-async function triggerMega() {
-    const p = state.pTeam[state.pIdx];
-    addLog(`${p.name.toUpperCase()} está mega evoluindo!`);
-    
-    const img = document.getElementById('p-sprite');
-    img.style.filter = 'brightness(5) contrast(2)';
-    
-    try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.name.toLowerCase()}-mega`);
-        if(res.ok) {
-            const d = await res.json();
-            p.sprite = d.sprites.other['official-artwork'].front_default;
-        }
-    } catch(e) {}
-
-    p.atk *= 1.6; p.name = "MEGA " + p.name; p.isMega = true; state.megaUsed = true;
-    if(state.isMultiplayer) state.conn.send({ type: 'MEGA' });
-
-    await new Promise(r => setTimeout(r, 800));
-    img.style.filter = 'none';
-    renderTurn();
-}
-
-async function executeNetworkMega() {
-    const e = state.eTeam[state.eIdx];
-    addLog(`Oponente mega evoluiu ${e.name}!`);
-    e.atk *= 1.6; e.name = "MEGA " + e.name;
-    renderTurn();
 }
 
 async function botTurn() {
     const e = state.eTeam[state.eIdx];
-    const move = e.moves[Math.floor(Math.random()*4)];
+    const move = e.moves[Math.floor(Math.random()*e.moves.length)];
     await hitAction(move, e, state.pTeam[state.pIdx], 'p');
     state.myTurn = true;
-    toggleBtns(true);
     checkStatus();
+    renderTurn(); // re-enable buttons
 }
 
 async function executeNetworkAttack(move) {
     await hitAction(move, state.eTeam[state.eIdx], state.pTeam[state.pIdx], 'p');
     state.myTurn = true;
-    toggleBtns(true);
     checkStatus();
+    renderTurn();
 }
 
 function checkStatus() {
     if(state.eTeam[state.eIdx].hp <= 0) {
         state.eIdx++;
         if(state.eIdx >= 6) return endBattle(true);
-        addLog("Próximo oponente!");
+        addLog("Inimigo caiu! Próximo oponente...");
+        if(state.isMultiplayer) state.myTurn = false; // Se matou no online, espera ele trocar
         renderTurn();
+        if(!state.isMultiplayer) playCry(state.eTeam[state.eIdx].cry);
     } else if(state.pTeam[state.pIdx].hp <= 0) {
         state.pIdx++;
         if(state.pIdx >= 6) return endBattle(false);
+        addLog("Seu Pokémon desmaiou!");
         openSwitch();
     }
 }
 
 function endBattle(win) {
-    alert(win ? "VOCÊ VENCEU A LIGA!" : "VOCÊ FOI DERROTADO!");
+    alert(win ? "VITÓRIA SUPREMA!" : "VOCÊ FOI DERROTADO!");
     location.reload();
 }
 
 function updateBars() {
     const p = state.pTeam[state.pIdx], e = state.eTeam[state.eIdx];
-    document.getElementById('p-hp-fill').style.width = (p.hp/p.maxHp)*100 + '%';
-    document.getElementById('e-hp-fill').style.width = (e.hp/e.maxHp)*100 + '%';
+    const pFill = document.getElementById('p-hp-fill');
+    const eFill = document.getElementById('e-hp-fill');
+    const pPct = (p.hp/p.maxHp)*100;
+    const ePct = (e.hp/e.maxHp)*100;
+    
+    pFill.style.width = pPct + '%';
+    pFill.style.backgroundColor = pPct > 50 ? 'var(--hp-green)' : pPct > 20 ? 'var(--hp-yellow)' : 'var(--hp-red)';
+    eFill.style.width = ePct + '%';
+    eFill.style.backgroundColor = ePct > 50 ? 'var(--hp-green)' : ePct > 20 ? 'var(--hp-yellow)' : 'var(--hp-red)';
 }
 
 function addLog(m) {
@@ -414,16 +525,9 @@ function addLog(m) {
     l.innerHTML += `<div>> ${m}</div>`;
     l.scrollTop = l.scrollHeight;
 }
-
-function toggleBtns(on) { 
-    document.querySelectorAll('.btn-move').forEach(b => b.disabled = !on); 
-}
-function updateHUD() { document.getElementById('h-coins').innerText = state.coins; }
-function openSwitch() { document.getElementById('switch-modal').style.display = 'block'; }
-function closeSwitch() { document.getElementById('switch-modal').style.display = 'none'; }
+function toggleBtns(on) { document.querySelectorAll('.btn-move').forEach(b => b.disabled = !on); }
 
 init();
 </script>
 </body>
 </html>
-
