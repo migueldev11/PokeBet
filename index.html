@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Poké-Stakes: Ultimate Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111c33;
+      --panel2:#14213d;
+      --line:rgba(255,255,255,.08);
+      --text:#e5eefc;
+      --muted:#93a4c7;
+      --accent:#60a5fa;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --radius:22px;
+      --radius2:16px;
+      --font:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;padding:0;width:100%;min-height:100%;
+      background:radial-gradient(circle at top, #1e293b 0%, var(--bg) 45%, #050816 100%);
+      color:var(--text);font-family:var(--font);overflow-x:hidden;
+    }
+    button,input,select{font:inherit;}
+    button{
+      border:none;cursor:pointer;
+      transition:transform .12s ease, filter .12s ease, opacity .15s ease, background .15s ease;
+      user-select:none;-webkit-tap-highlight-color:transparent;
+    }
+    button:active{transform:scale(.98)}
+    button:disabled{cursor:not-allowed;opacity:.45;filter:saturate(.6)}
+
+    .app{
+      width:min(100%, 980px);margin:0 auto;padding:12px;
+      min-height:100vh;display:flex;flex-direction:column;gap:12px;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;padding:14px 16px;border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(17,28,51,.96), rgba(12,19,38,.96));
+      box-shadow:var(--shadow);backdrop-filter:blur(10px);
+    }
+    .brand{display:flex;flex-direction:column;gap:2px;}
+    .eyebrow{font-size:.75rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;font-weight:700;}
+    .brand h1{margin:0;font-size:1.15rem;line-height:1.1;}
+    .topRight{display:flex;align-items:center;gap:8px;}
+    .coinsBox{
+      display:flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.04);border:1px solid var(--line);
+      padding:10px 12px;border-radius:18px;min-width:120px;justify-content:center;
+    }
+    .coinOrb{
+      width:16px;height:16px;border-radius:50%;
+      background:radial-gradient(circle at 35% 35%, #fef08a 0%, #f59e0b 55%, #92400e 100%);
+      box-shadow:0 0 14px rgba(245,158,11,.6);flex:0 0 auto;
+    }
+    .coinsText{display:flex;flex-direction:column;line-height:1.05;}
+    .coinsText strong{font-size:1rem;}
+    .coinsText span{font-size:.74rem;color:var(--muted);}
+
+    /* ── SCREENS ── */
+    .screen{display:none;flex-direction:column;gap:12px;}
+    .screen.active{display:flex;}
+
+    /* ── PANEL ── */
+    .panel{
+      background:linear-gradient(180deg, rgba(17,28,51,.96), rgba(10,17,33,.96));
+      border:1px solid var(--line);border-radius:var(--radius);
+      box-shadow:var(--shadow);overflow:hidden;
+    }
+
+    /* ── HERO ── */
+    .hero{padding:16px;display:flex;flex-direction:column;gap:12px;}
+    .heroTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+    .heroCopy h2{margin:0 0 6px;font-size:1.05rem;}
+    .heroCopy p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.4;}
+    .heroButtons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+
+    /* ── BUTTONS ── */
+    .btn{
+      border-radius:16px;padding:12px 14px;font-weight:700;color:var(--text);
+      border:1px solid var(--line);background:rgba(255,255,255,.05);
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+    .btn:hover{filter:brightness(1.06);}
+    .btnPrimary{background:linear-gradient(180deg, #2563eb, #1d4ed8);}
+    .btnSuccess{background:linear-gradient(180deg, #16a34a, #15803d);}
+    .btnWarn{background:linear-gradient(180deg, #f59e0b, #d97706);color:#111827;}
+    .btnDanger{background:linear-gradient(180deg, #ef4444, #dc2626);}
+    .btnMega{background:linear-gradient(135deg, #7c3aed, #db2777);}
+    .btnDex{background:linear-gradient(135deg, #0ea5e9, #2563eb);}
+
+    .sectionHead{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03);
+    }
+    .sectionHead h2{margin:0;font-size:1rem;}
+    .sectionMeta{color:var(--muted);font-size:.82rem;font-weight:600;}
+
+    /* ── INVENTORY GRID ── */
+    .gridWrap{
+      padding:14px;display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;
+    }
+    .gridWrap.collapsed{display:none;}
+
+    /* ── POKEMON CARD ── */
+    .pokemonCard{
+      position:relative;border-radius:18px;overflow:hidden;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      padding:12px;min-height:132px;display:flex;flex-direction:column;gap:8px;text-align:left;
+    }
+    .pokemonCard.selected{
+      outline:2px solid rgba(96,165,250,.85);
+      box-shadow:0 0 0 4px rgba(96,165,250,.15);transform:translateY(-1px);
+    }
+    .pokemonCard.disabled{opacity:.42;filter:saturate(.55);}
+    .pokeTop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+    .pokeName{font-weight:800;font-size:.92rem;text-transform:capitalize;line-height:1.15;}
+    .pokeLevel{font-size:.72rem;color:var(--muted);font-weight:700;white-space:nowrap;}
+    .typeRow{display:flex;flex-wrap:wrap;gap:6px;}
+    .typeChip{
+      font-size:.68rem;font-weight:800;text-transform:uppercase;
+      letter-spacing:.03em;border-radius:999px;padding:5px 8px;
+      color:white;display:inline-flex;align-items:center;justify-content:center;min-width:50px;
+    }
+    .miniStats{
+      display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;
+      font-size:.72rem;color:var(--muted);margin-top:auto;
+    }
+    .miniStats b{color:var(--text);display:block;margin-top:1px;font-size:.82rem;}
+
+    /* ── SELECTED TRAY ── */
+    .selectedTray{
+      padding:14px;display:grid;
+      grid-template-columns:repeat(6, minmax(0, 1fr));gap:8px;
+    }
+    .slot{
+      aspect-ratio:1/1;border-radius:18px;border:1px dashed rgba(255,255,255,.15);
+      background:rgba(255,255,255,.025);display:flex;align-items:center;
+      justify-content:center;padding:8px;text-align:center;overflow:hidden;
+      position:relative;font-size:.7rem;color:var(--muted);font-weight:700;
+    }
+    .slot.filled{border-style:solid;border-color:var(--line);background:rgba(255,255,255,.04);color:var(--text);}
+    .slot small{
+      position:absolute;left:6px;top:6px;width:18px;height:18px;border-radius:50%;
+      background:rgba(255,255,255,.08);display:flex;align-items:center;
+      justify-content:center;font-size:.65rem;font-weight:800;
+    }
+
+    /* ── BATTLE AREA ── */
+    .battleArea{padding:12px;display:flex;flex-direction:column;gap:12px;}
+    .arena{
+      position:relative;min-height:420px;border-radius:26px;overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(120,189,255,.95) 0%, rgba(105,179,255,.9) 34%, rgba(133,206,255,.82) 44%, rgba(89,191,122,.92) 45%, rgba(30,129,60,.98) 100%);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04), inset 0 -20px 60px rgba(0,0,0,.12);
+      display:grid;grid-template-rows:1fr auto 1fr;align-items:center;justify-items:center;gap:8px;padding:14px;
+    }
+    .arena::before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at 24% 18%, rgba(255,255,255,.85), rgba(255,255,255,.2) 18%, transparent 22%),
+        radial-gradient(circle at 70% 15%, rgba(255,255,255,.55), transparent 17%),
+        radial-gradient(circle at 85% 26%, rgba(255,255,255,.45), transparent 12%);
+      pointer-events:none;opacity:.55;
+    }
+    /* Weather overlay */
+    .weatherBadge{
+      position:absolute;top:10px;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);
+      backdrop-filter:blur(4px);border-radius:999px;padding:5px 12px;
+      font-size:.72rem;font-weight:800;letter-spacing:.05em;color:white;z-index:5;
+    }
+
+    .enemyArea,.playerArea{
+      position:relative;width:100%;display:grid;
+      grid-template-columns:1fr;justify-items:center;z-index:1;
+    }
+    .enemyArea{align-self:start;}
+    .playerArea{align-self:end;}
+
+    .nameplate{
+      width:min(100%, 330px);display:flex;align-items:center;
+      justify-content:space-between;gap:10px;padding:10px 12px;
+      border-radius:16px;background:rgba(6,12,24,.36);
+      border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px);
+      font-size:.92rem;font-weight:800;
+    }
+    .nameplate span{font-size:.72rem;color:rgba(255,255,255,.8);font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+    .hpWrap{width:min(100%, 330px);margin-top:8px;display:flex;flex-direction:column;gap:6px;}
+    .hpBar{
+      position:relative;height:14px;border-radius:999px;overflow:hidden;
+      background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.18);
+    }
+    .hpFill{height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg, #22c55e, #84cc16);transition:width .25s ease;}
+    .hpFill.mid{background:linear-gradient(90deg, #f59e0b, #eab308);}
+    .hpFill.low{background:linear-gradient(90deg, #ef4444, #dc2626);}
+    .hpText{display:flex;justify-content:space-between;gap:10px;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.9);}
+    .statusArea{width:min(100%, 330px);display:flex;flex-wrap:wrap;gap:6px;min-height:24px;}
+    .statusBadge,.buffBadge{
+      padding:5px 8px;border-radius:999px;font-size:.67rem;font-weight:900;
+      letter-spacing:.04em;text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:var(--text);
+    }
+    .statusBadge.brn{background:rgba(239,68,68,.2);color:#fecaca;}
+    .statusBadge.psn{background:rgba(168,85,247,.18);color:#e9d5ff;}
+    .statusBadge.slp{background:rgba(99,102,241,.18);color:#c7d2fe;}
+    .statusBadge.par{background:rgba(250,204,21,.18);color:#fef08a;}
+    .buffBadge.plus{background:rgba(34,197,94,.17);color:#bbf7d0;}
+    .buffBadge.minus{background:rgba(239,68,68,.17);color:#fecaca;}
+
+    .spriteWrap{
+      position:relative;width:min(100%, 300px);height:170px;
+      display:flex;align-items:center;justify-content:center;margin-top:10px;
+    }
+    .spriteWrap img{
+      max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated;
+      filter:drop-shadow(0 18px 10px rgba(0,0,0,.35));
+      transform:translateZ(0);transition:transform .15s ease, filter .15s ease;
+    }
+    .spriteWrap.hitFlash{animation:flash .28s linear 1;}
+    @keyframes flash{0%{filter:brightness(1)}35%{filter:brightness(1.9) saturate(1.2)}100%{filter:brightness(1)}}
+    .spriteWrap.megaGlow img{filter:drop-shadow(0 0 20px rgba(168,85,247,.8)) drop-shadow(0 18px 10px rgba(0,0,0,.35));}
+
+    .vsTag{
+      position:relative;z-index:1;padding:8px 14px;border-radius:999px;
+      background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.16);
+      font-weight:900;letter-spacing:.2em;font-size:.8rem;
+    }
+
+    /* ── STAKE DISPLAY ── */
+    .stakeBanner{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      padding:8px 14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);
+      border-radius:12px;font-size:.85rem;font-weight:700;
+    }
+    .stakeBanner .pot{color:#fcd34d;font-weight:900;}
+
+    /* ── CONTROLS ── */
+    .controlsArea{
+      display:grid;grid-template-columns:minmax(0, 1.45fr) minmax(120px, .8fr);
+      gap:12px;align-items:start;
+    }
+    .moveGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;}
+    .moveBtn{
+      min-height:68px;padding:12px;border-radius:18px;text-align:left;
+      font-weight:800;color:white;border:1px solid rgba(255,255,255,.1);
+      box-shadow:0 10px 20px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:4px;justify-content:center;
+    }
+    .moveBtn small{font-size:.7rem;opacity:.88;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+    .moveBtn span{font-size:.92rem;line-height:1.1;text-transform:capitalize;}
+    .sideActions{display:grid;gap:10px;}
+    .sideActions .btn{width:100%;min-height:48px;border-radius:18px;font-weight:800;}
+
+    /* ── LOG ── */
+    .logBox{
+      max-height:180px;overflow:auto;padding:14px 16px;
+      display:flex;flex-direction:column;gap:8px;font-size:.9rem;line-height:1.35;
+    }
+    .logLine{color:#e5eefc;opacity:.96;padding-left:14px;position:relative;}
+    .logLine::before{content:"•";position:absolute;left:0;top:0;color:var(--accent);font-weight:900;}
+    .logLine.system::before{color:#f59e0b;}
+    .logLine.good::before{color:#22c55e;}
+    .logLine.bad::before{color:#ef4444;}
+    .logLine.crit::before{color:#c084fc;}
+
+    /* ── MODAL ── */
+    .modalOverlay{
+      position:fixed;inset:0;background:rgba(2,6,23,.72);backdrop-filter:blur(8px);
+      z-index:50;display:flex;align-items:center;justify-content:center;padding:12px;
+    }
+    .modalOverlay.hidden{display:none;}
+    .modalCard{
+      width:min(100%, 760px);max-height:min(92vh, 860px);overflow:hidden;
+      border-radius:26px;
+      background:linear-gradient(180deg, rgba(17,28,51,.98), rgba(10,17,33,.98));
+      border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;
+    }
+    .modalHead{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 16px;border-bottom:1px solid var(--line);
+    }
+    .modalHead h3{margin:0;font-size:1rem;}
+    .modalClose{
+      width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.06);
+      color:var(--text);border:1px solid var(--line);font-size:1.2rem;font-weight:900;
+    }
+    .modalBody{padding:14px;overflow:auto;}
+
+    /* ── SWITCH MODAL ── */
+    .switchGrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px;}
+    .switchCard{
+      border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+      padding:12px;min-height:120px;text-align:left;color:var(--text);
+      display:flex;flex-direction:column;gap:6px;position:relative;
+    }
+    .switchCard .badge{
+      position:absolute;right:10px;top:10px;font-size:.68rem;font-weight:900;
+      padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08);
+    }
+    .switchCard.active{outline:2px solid rgba(96,165,250,.75);}
+    .switchCard.fainted{opacity:.45;cursor:not-allowed;}
+    .switchCard .statusLine{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}
+
+    /* ── SHOP ── */
+    .shopWrap{display:grid;gap:12px;}
+    .shopTop{display:grid;gap:10px;grid-template-columns:140px minmax(0,1fr);align-items:center;}
+    .spinStage{
+      aspect-ratio:1/1;border-radius:24px;
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+      position:relative;overflow:hidden;
+    }
+    .pokeball{
+      width:70px;height:70px;border-radius:50%;
+      background:linear-gradient(180deg, #ef4444 0 49%, #f8fafc 49% 100%);
+      border:4px solid #0f172a;position:relative;box-shadow:0 14px 24px rgba(0,0,0,.25);
+    }
+    .pokeball::before{content:"";position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;background:#0f172a;}
+    .pokeball::after{
+      content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
+      margin:-9px 0 0 -9px;border-radius:50%;background:#f8fafc;border:4px solid #0f172a;box-sizing:border-box;
+    }
+    .pokeball.spin{animation:spinBall .7s linear infinite;}
+    @keyframes spinBall{from{transform:rotate(0deg) scale(1)}to{transform:rotate(360deg) scale(1)}}
+    .shopInfo{display:flex;flex-direction:column;gap:8px;}
+    .shopInfo p{margin:0;color:var(--muted);line-height:1.5;font-size:.93rem;}
+    .resultCard{
+      display:none;border-radius:18px;border:1px solid var(--line);
+      background:rgba(255,255,255,.04);padding:12px;gap:8px;align-items:center;
+      grid-template-columns:74px minmax(0,1fr);
+    }
+    .resultCard.show{display:grid;}
+    .resultCard img{width:74px;height:74px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 10px 10px rgba(0,0,0,.28));}
+    .resultCard h4{margin:0 0 4px;text-transform:capitalize;}
+    .resultCard .mini{color:var(--muted);font-size:.84rem;line-height:1.35;}
+
+    /* ── ENTRY FEE MODAL ── */
+    .feeGrid{
+      display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:8px;margin-top:12px;
+    }
+    .feeBtn{
+      padding:14px 8px;border-radius:16px;border:2px solid var(--line);
+      background:rgba(255,255,255,.04);color:var(--text);font-weight:800;font-size:.92rem;
+      text-align:center;cursor:pointer;transition:all .15s ease;
+    }
+    .feeBtn:hover{border-color:rgba(96,165,250,.5);background:rgba(96,165,250,.08);}
+    .feeBtn.selected{
+      border-color:#60a5fa;background:rgba(96,165,250,.15);
+      color:#bfdbfe;box-shadow:0 0 0 3px rgba(96,165,250,.2);
+    }
+    .feeBtn small{display:block;font-size:.68rem;color:var(--muted);font-weight:600;margin-top:2px;}
+    .feeInfo{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+      padding:14px;background:rgba(255,255,255,.03);border-radius:16px;margin-top:12px;
+      text-align:center;
+    }
+    .feeInfo .label{font-size:.72rem;color:var(--muted);font-weight:700;}
+    .feeInfo .value{font-size:1rem;font-weight:800;margin-top:2px;}
+    .feeInfo .value.green{color:#4ade80;}
+    .feeInfo .value.red{color:#f87171;}
+
+    /* ── MEGA CHOICE ── */
+    .megaChoiceGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:10px;}
+    .megaChoiceCard{
+      padding:16px;border-radius:18px;border:2px solid var(--line);
+      background:rgba(255,255,255,.04);color:var(--text);
+      display:flex;flex-direction:column;align-items:center;gap:10px;
+      cursor:pointer;transition:all .15s ease;text-align:center;
+    }
+    .megaChoiceCard:hover{border-color:rgba(168,85,247,.6);background:rgba(168,85,247,.1);}
+    .megaChoiceCard img{width:80px;height:80px;object-fit:contain;image-rendering:pixelated;}
+    .megaChoiceCard .megaName{font-weight:900;font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;}
+    .megaChoiceCard .megaTypes{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+    .megaChoiceCard .megaBonus{font-size:.78rem;color:#c4b5fd;font-weight:700;}
+
+    /* ── POKÉDEX ── */
+    .dexWrap{display:flex;flex-direction:column;gap:12px;}
+    .dexStats{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+      padding:12px;background:rgba(255,255,255,.03);border-radius:16px;text-align:center;
+    }
+    .dexStats .label{font-size:.72rem;color:var(--muted);font-weight:700;}
+    .dexStats .value{font-size:1.1rem;font-weight:800;margin-top:2px;}
+    .dexGrid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+    }
+    .dexCard{
+      border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+      padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;
+    }
+    .dexCard img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;}
+    .dexCard .dexName{font-size:.68rem;font-weight:800;text-transform:capitalize;line-height:1.2;}
+    .dexCard .dexNum{font-size:.62rem;color:var(--muted);font-weight:700;}
+    .dexCard.caught{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05);}
+    .dexCard.seen{border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.04);}
+
+    /* ── FOOTER ── */
+    .footerHint{color:var(--muted);font-size:.78rem;text-align:center;padding:2px 4px 8px;}
+
+    /* ── TYPE COLORS ── */
+    .type-normal{background:linear-gradient(180deg,#a8a29e,#78716c)}
+    .type-fire{background:linear-gradient(180deg,#f97316,#dc2626)}
+    .type-water{background:linear-gradient(180deg,#38bdf8,#2563eb)}
+    .type-electric{background:linear-gradient(180deg,#facc15,#eab308);color:#111827}
+    .type-grass{background:linear-gradient(180deg,#4ade80,#16a34a)}
+    .type-ice{background:linear-gradient(180deg,#67e8f9,#0ea5e9);color:#083344}
+    .type-fighting{background:linear-gradient(180deg,#fb7185,#ef4444)}
+    .type-poison{background:linear-gradient(180deg,#c084fc,#9333ea)}
+    .type-ground{background:linear-gradient(180deg,#f59e0b,#b45309)}
+    .type-flying{background:linear-gradient(180deg,#93c5fd,#3b82f6)}
+    .type-psychic{background:linear-gradient(180deg,#f472b6,#db2777)}
+    .type-bug{background:linear-gradient(180deg,#a3e635,#65a30d)}
+    .type-rock{background:linear-gradient(180deg,#d6d3d1,#78716c);color:#111827}
+    .type-ghost{background:linear-gradient(180deg,#818cf8,#4338ca)}
+    .type-dragon{background:linear-gradient(180deg,#60a5fa,#1d4ed8)}
+    .type-dark{background:linear-gradient(180deg,#64748b,#0f172a)}
+    .type-steel{background:linear-gradient(180deg,#cbd5e1,#64748b);color:#111827}
+    .type-fairy{background:linear-gradient(180deg,#f9a8d4,#ec4899)}
+
+    @media(max-width:760px){
+      .controlsArea{grid-template-columns:1fr;}
+      .sideActions{grid-template-columns:repeat(4, minmax(0, 1fr));grid-auto-flow:column;}
+      .dexGrid{grid-template-columns:repeat(3,minmax(0,1fr));}
+    }
+    @media(max-width:480px){
+      .app{padding:10px;gap:10px;}
+      .topbar{padding:12px;}
+      .brand h1{font-size:1rem;}
+      .heroTop{flex-direction:column;}
+      .heroButtons{justify-content:flex-start;}
+      .gridWrap{grid-template-columns:1fr;}
+      .selectedTray{grid-template-columns:repeat(3, minmax(0,1fr));}
+      .arena{min-height:380px;padding:12px;}
+      .spriteWrap{height:140px;}
+      .moveGrid{grid-template-columns:1fr;}
+      .switchGrid{grid-template-columns:1fr;}
+      .shopTop{grid-template-columns:1fr;}
+      .feeGrid{grid-template-columns:repeat(3,minmax(0,1fr));}
+      .megaChoiceGrid{grid-template-columns:1fr;}
+      .sideActions{grid-template-columns:repeat(2, minmax(0, 1fr));grid-auto-flow:initial;}
+      .nameplate,.hpWrap,.statusArea{width:100%;}
+      .dexGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="eyebrow">Poké-Stakes</div>
+        <h1>Ultimate Edition</h1>
+      </div>
+      <div class="topRight">
+        <button id="dexBtn" class="btn btnDex" style="padding:10px 12px;font-size:.82rem;">📖 Pokédex</button>
+        <div class="coinsBox" aria-label="moedas">
+          <div class="coinOrb"></div>
+          <div class="coinsText">
+            <strong id="coinsValue">0</strong>
+            <span>moedas</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TEAM SCREEN -->
+    <section id="teamScreen" class="screen active">
+
+      <div class="panel hero">
+        <div class="heroTop">
+          <div class="heroCopy">
+            <h2>Monte sua equipe com 6 Pokémon</h2>
+            <p>Escolha a taxa de entrada, monte seu time e entre na batalha. Quanto maior a aposta, maior o prêmio!</p>
+          </div>
+          <div class="heroButtons">
+            <button id="openShopBtn" class="btn btnWarn">🎰 Gacha</button>
+            <button id="resetBtn" class="btn btnDanger">Resetar</button>
+          </div>
+        </div>
+        <div class="footerHint" id="saveHint">Dados salvos no localStorage.</div>
+      </div>
+
+      <!-- EQUIPE -->
+      <div class="panel">
+        <div class="sectionHead">
+          <h2>Equipe escolhida</h2>
+          <div class="sectionMeta"><span id="teamCount">0</span>/6</div>
+        </div>
+        <div id="selectedTray" class="selectedTray"></div>
+        <div style="padding:14px;padding-top:0;">
+          <button id="startBattleBtn" class="btn btnPrimary" style="width:100%;min-height:52px;" disabled>⚔️ Escolher Taxa e Batalhar</button>
+        </div>
+      </div>
+
+      <!-- INVENTÁRIO -->
+      <div class="panel">
+        <div class="sectionHead">
+          <h2>Inventário</h2>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="sectionMeta" id="inventoryCount">0 Pokémon</div>
+            <button id="invToggleBtn" class="btn" style="padding:6px 12px;font-size:.8rem;border-radius:12px;">Ocultar</button>
+          </div>
+        </div>
+        <div id="inventoryGrid" class="gridWrap"></div>
+      </div>
+
+    </section>
+
+    <!-- BATTLE SCREEN -->
+    <section id="battleScreen" class="screen">
+
+      <!-- Stake banner -->
+      <div id="stakeBanner" class="stakeBanner" style="display:none;">
+        <span>🏆 Aposta:</span>
+        <span class="pot" id="stakePotDisplay">0 moedas</span>
+        <span style="color:var(--muted);font-size:.8rem;">o vencedor leva tudo</span>
+      </div>
+
+      <div class="panel battleArea">
+        <div class="arena" id="arenaEl">
+          <!-- Weather badge injected by JS -->
+          <div class="enemyArea">
+            <div class="nameplate">
+              <div><span>Inimigo</span><div id="enemyName">---</div></div>
+              <div id="enemyTypeLabel"></div>
+            </div>
+            <div class="hpWrap">
+              <div class="hpBar"><div id="enemyHpFill" class="hpFill"></div></div>
+              <div class="hpText">
+                <span id="enemyHpText">HP 0/0</span>
+                <span id="enemyLvText">Lv. 50</span>
+              </div>
+              <div id="enemyStatusArea" class="statusArea"></div>
+            </div>
+            <div class="spriteWrap" id="enemySpriteWrap">
+              <img id="enemySprite" alt="sprite do inimigo" />
+            </div>
+          </div>
+
+          <div class="vsTag">VS</div>
+
+          <div class="playerArea">
+            <div class="spriteWrap" id="playerSpriteWrap">
+              <img id="playerSprite" alt="sprite do jogador" />
+            </div>
+            <div class="nameplate">
+              <div><span>Jogador</span><div id="playerName">---</div></div>
+              <div id="playerTypeLabel"></div>
+            </div>
+            <div class="hpWrap">
+              <div class="hpBar"><div id="playerHpFill" class="hpFill"></div></div>
+              <div class="hpText">
+                <span id="playerHpText">HP 0/0</span>
+                <span id="playerLvText">Lv. 50</span>
+              </div>
+              <div id="playerStatusArea" class="statusArea"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controlsArea">
+        <div class="panel" style="padding:12px;">
+          <div class="sectionHead" style="padding:0 0 12px;border-bottom:1px solid var(--line);background:none;">
+            <h2>Golpes</h2>
+            <div class="sectionMeta" id="movesMeta">4 ataques</div>
+          </div>
+          <div id="moveButtons" class="moveGrid" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="sideActions">
+          <button id="switchBtn" class="btn btnPrimary">🔄 Switch</button>
+          <button id="megaBtn" class="btn btnMega">⚡ Mega</button>
+          <button id="shopBtn" class="btn btnWarn">🎰 Shop</button>
+          <button id="backTeamBtn" class="btn">← Sair</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="sectionHead">
+          <h2>Combat Log</h2>
+          <div class="sectionMeta">mensagens</div>
+        </div>
+        <div id="logBox" class="logBox"></div>
+      </div>
+
+    </section>
+
+  </div><!-- .app -->
+
+  <!-- MODAL OVERLAY -->
+  <div id="modalOverlay" class="modalOverlay hidden">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3 id="modalTitle">Modal</h3>
+        <button id="modalCloseBtn" class="modalClose" aria-label="fechar">×</button>
+      </div>
+      <div id="modalBody" class="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       JAVASCRIPT — PARTE 2 : LÓGICA COMPLETA
+       ═══════════════════════════════════════════════════════════ -->
+  <script>
+  (() => {
+    'use strict';
+
+    /* ────────────────────────────── CONSTANTS ────────────────────────── */
+    const STORAGE_KEY   = 'pokeStakesUltimateSave_v3';
+    const DEX_CACHE_KEY = 'pokeStakesDexCache_v2';
+    const battleLevel   = 50;
+    const GACHA_POOL_MAX = 649; // Gen 1-5
+
+    // Starters — Gen 1-5 representados
+    const starterIds = [1, 4, 7, 25, 133, 150, 495, 498, 501, 25];
+
+    /* ── MEGA DATA ─────────────────────────────────────────────────────── */
+    // Pokémon que podem mega evoluir (com sprites diretos)
+    const megaData = {
+      3: {  // Venusaur
+        forms: [{
+          id:'mega', label:'Mega Venusaur',
+          sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10033.png',
+          types:['grass','poison'], atkBonus:55, defBonus:20
+        }]
+      },
+      6: {  // Charizard X / Y
+        forms: [
+          { id:'x', label:'Mega Charizard X',
+            sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10034.png',
+            types:['fire','dragon'], atkBonus:65, defBonus:10 },
+          { id:'y', label:'Mega Charizard Y',
+            sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10035.png',
+            types:['fire','flying'], atkBonus:80, defBonus:5 }
+        ]
+      },
+      9: {  // Blastoise
+        forms: [{
+          id:'mega', label:'Mega Blastoise',
+          sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10036.png',
+          types:['water'], atkBonus:50, defBonus:25
+        }]
+      },
+      150: { // Mewtwo X / Y
+        forms: [
+          { id:'x', label:'Mega Mewtwo X',
+            sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10043.png',
+            types:['psychic','fighting'], atkBonus:75, defBonus:15 },
+          { id:'y', label:'Mega Mewtwo Y',
+            sprite:'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10044.png',
+            types:['psychic'], atkBonus:90, defBonus:5 }
+        ]
+      }
+    };
+
+    /* ── TYPE CHART ────────────────────────────────────────────────────── */
+    const typeChart = {
+      normal:  {rock:.5,ghost:0,steel:.5},
+      fire:    {grass:2,ice:2,bug:2,steel:2,fire:.5,water:.5,rock:.5,dragon:.5},
+      water:   {fire:2,ground:2,rock:2,water:.5,grass:.5,dragon:.5},
+      electric:{water:2,flying:2,electric:.5,grass:.5,dragon:.5,ground:0},
+      grass:   {water:2,ground:2,rock:2,fire:.5,grass:.5,poison:.5,flying:.5,bug:.5,dragon:.5,steel:.5},
+      ice:     {grass:2,ground:2,flying:2,dragon:2,fire:.5,water:.5,ice:.5,steel:.5},
+      fighting:{normal:2,ice:2,rock:2,dark:2,steel:2,poison:.5,flying:.5,psychic:.5,bug:.5,fairy:.5,ghost:0},
+      poison:  {grass:2,fairy:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0},
+      ground:  {fire:2,electric:2,poison:2,rock:2,steel:2,grass:.5,bug:.5,flying:0},
+      flying:  {grass:2,fighting:2,bug:2,electric:.5,rock:.5,steel:.5},
+      psychic: {fighting:2,poison:2,psychic:.5,steel:.5,dark:0},
+      bug:     {grass:2,psychic:2,dark:2,fire:.5,fighting:.5,poison:.5,flying:.5,ghost:.5,steel:.5,fairy:.5},
+      rock:    {fire:2,ice:2,flying:2,bug:2,fighting:.5,ground:.5,steel:.5},
+      ghost:   {psychic:2,ghost:2,dark:.5,normal:0,fairy:.5},
+      dragon:  {dragon:2,steel:.5,fairy:0},
+      dark:    {psychic:2,ghost:2,fighting:.5,dark:.5,fairy:.5},
+      steel:   {ice:2,rock:2,fairy:2,fire:.5,water:.5,electric:.5,steel:.5},
+      fairy:   {fighting:2,dragon:2,dark:2,fire:.5,poison:.5,steel:.5}
+    };
+
+    /* ── WEATHER ───────────────────────────────────────────────────────── */
+    const WEATHERS = [
+      { id:'none',      label:'',             icon:'',   typeBoost:null,   typePenalty:null,   residualTypes:[]           },
+      { id:'sunny',     label:'Tempo Ensolarado', icon:'☀️', typeBoost:'fire', typePenalty:'water', residualTypes:[]         },
+      { id:'rainy',     label:'Chuva',         icon:'🌧️', typeBoost:'water', typePenalty:'fire',  residualTypes:[]          },
+      { id:'sandstorm', label:'Tempestade de Areia', icon:'🌪️', typeBoost:null, typePenalty:null, residualTypes:['rock','ground','steel'] },
+      { id:'hail',      label:'Granizo',       icon:'❄️', typeBoost:null,  typePenalty:null,   residualTypes:['ice']       }
+    ];
+
+    /* ── STATE ─────────────────────────────────────────────────────────── */
+    const state = {
+      coins: 0,
+      inventory: [],
+      teamUids: [],
+      ownedIds: [],           // IDs já no inventário (anti-repeat gacha)
+      caughtDex: [],          // IDs obtidos (Pokédex)
+      seenDex: [],            // IDs vistos em batalha
+      mode: 'team',
+      pIdx: 0,
+      playerBattleTeam: [],
+      enemyBattle: null,
+      processing: false,
+      battleEnded: false,
+      switchResolver: null,
+      megaResolver: null,
+      feeResolver: null,
+      modalType: null,
+      shopBusy: false,
+      entryFee: 100,
+      currentPot: 0,
+      weather: WEATHERS[0],
+      inventoryVisible: true
+    };
+
+    const dexCache = loadJSON(DEX_CACHE_KEY, {});
+    const els = {};
+
+    /* ────────────────────────────── HELPERS ──────────────────────────── */
+    function $(id){ return document.getElementById(id); }
+
+    function cacheEls(){
+      [
+        'coinsValue','teamScreen','battleScreen',
+        'inventoryGrid','selectedTray','inventoryCount','teamCount',
+        'startBattleBtn','openShopBtn','resetBtn','shopBtn','switchBtn','megaBtn','backTeamBtn','dexBtn',
+        'invToggleBtn','arenaEl',
+        'moveButtons','logBox',
+        'enemyName','playerName','enemySprite','playerSprite',
+        'enemyHpFill','playerHpFill','enemyHpText','playerHpText','enemyLvText','playerLvText',
+        'enemyStatusArea','playerStatusArea','enemyTypeLabel','playerTypeLabel',
+        'enemySpriteWrap','playerSpriteWrap',
+        'modalOverlay','modalTitle','modalBody','modalCloseBtn','saveHint',
+        'stakeBanner','stakePotDisplay','movesMeta'
+      ].forEach(id => els[id] = $(id));
+    }
+
+    function loadJSON(key, fallback){
+      try{ const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; }
+      catch{ return fallback; }
+    }
+    function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+    function uid(){
+      return (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : 'uid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+    }
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+    function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+    function capitalize(str){
+      return String(str||'').replace(/-/g,' ').replace(/\b\w/g, s => s.toUpperCase());
+    }
+
+    /* ────────────────────────────── SAVE / LOAD ──────────────────────── */
+    function saveGame(){
+      saveJSON(STORAGE_KEY, {
+        coins: state.coins,
+        inventory: state.inventory,
+        teamUids: state.teamUids,
+        ownedIds: [...new Set(state.ownedIds)],
+        caughtDex: [...new Set(state.caughtDex)],
+        seenDex: [...new Set(state.seenDex)],
+        inventoryVisible: state.inventoryVisible
+      });
+      saveJSON(DEX_CACHE_KEY, dexCache);
+      els.coinsValue.textContent = String(state.coins);
+    }
+
+    function renderCoins(){ els.coinsValue.textContent = String(state.coins); }
+
+    /* ────────────────────────────── SCREENS ─────────────────────────── */
+    function showScreen(mode){
+      state.mode = mode;
+      els.teamScreen.classList.toggle('active', mode === 'team');
+      els.battleScreen.classList.toggle('active', mode === 'battle');
+    }
+
+    /* ────────────────────────────── LOG ─────────────────────────────── */
+    function log(message, tone = ''){
+      const line = document.createElement('div');
+      line.className = `logLine ${tone}`.trim();
+      line.textContent = message;
+      els.logBox.appendChild(line);
+      while (els.logBox.children.length > 40) els.logBox.removeChild(els.logBox.firstChild);
+      els.logBox.scrollTop = els.logBox.scrollHeight;
+    }
+
+    /* ────────────────────────────── TYPES & UI ──────────────────────── */
+    function getTypeClass(t){ return `type-${String(t||'normal').toLowerCase()}`; }
+
+    function renderTypeChips(types){
+      return (types||[]).map(t => `<span class="typeChip ${getTypeClass(t)}">${t}</span>`).join('');
+    }
+
+    function getHpPercent(mon){
+      if (!mon || !mon.maxHp) return 0;
+      return clamp((mon.currentHp / mon.maxHp) * 100, 0, 100);
+    }
+    function hpClass(pct){ return pct<=25?'low':pct<=50?'mid':''; }
+
+    function stageMultiplier(stage){
+      const s = clamp(stage,-6,6);
+      return s>=0 ? (2+s)/2 : 2/(2-s);
+    }
+    function statStageLabel(stage){
+      if (!stage) return ''; return stage>0?`+${stage}`:`${stage}`;
+    }
+
+    /* ────────────────────────────── STATS ──────────────────────────── */
+    function calcStats(baseStats, level){
+      const hp  = Math.floor(((2*baseStats.hp+31)*level)/100)+level+10;
+      const atk = Math.floor(((2*baseStats.atk+31)*level)/100)+5;
+      const def = Math.floor(((2*baseStats.def+31)*level)/100)+5;
+      return {hp,atk,def};
+    }
+
+    function getCurrentAtk(mon){
+      const megaBonus = mon.isMega ? (mon.megaAtkBonus||0) : 0;
+      let atk = (mon.battleStats.atk + megaBonus) * stageMultiplier(mon.buffs.atk||0);
+      if (mon.status==='BRN') atk *= 0.5;
+      return Math.max(1, atk);
+    }
+    function getCurrentDef(mon){
+      const megaBonus = mon.isMega ? (mon.megaDefBonus||0) : 0;
+      return Math.max(1, (mon.battleStats.def + megaBonus) * stageMultiplier(mon.buffs.def||0));
+    }
+
+    function getEffectiveness(moveType, defenderTypes){
+      let mult = 1;
+      const at = String(moveType||'normal').toLowerCase();
+      (defenderTypes||[]).forEach(dt => {
+        const m = typeChart[at]?.[String(dt).toLowerCase()];
+        if (typeof m === 'number') mult *= m;
+      });
+      return mult;
+    }
+    function formatEffectiveness(mult){
+      if (mult>=2) return '⚡ É super efetivo!';
+      if (mult>0&&mult<1) return '💤 Não foi muito efetivo...';
+      if (mult===0) return '🛡️ Não teve efeito!';
+      return '';
+    }
+
+    /* ────────────────────────────── API ─────────────────────────────── */
+    function getMainSprite(data, back=false){
+      const s = data?.sprites || {};
+      if (back) return s.back_default||s.front_default||s.other?.['official-artwork']?.front_default||'';
+      return s.front_default||s.back_default||s.other?.['official-artwork']?.front_default||'';
+    }
+
+    async function fetchJSON(url){
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function uniqueRandomPick(arr, count){
+      const copy = [...arr];
+      for (let i=copy.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [copy[i],copy[j]]=[copy[j],copy[i]];
+      }
+      return copy.slice(0,count);
+    }
+
+    async function fetchMoveDetail(name){
+      try{ return await fetchJSON(`https://pokeapi.co/api/v2/move/${name}`); }
+      catch{ return null; }
+    }
+
+    function normalizeMove(md){
+      return {
+        name: md?.name||'tackle',
+        type: md?.type?.name||'normal',
+        power: typeof md?.power==='number'?md.power:0,
+        accuracy: typeof md?.accuracy==='number'?md.accuracy:100,
+        pp: typeof md?.pp==='number'?md.pp:20,
+        damageClass: md?.damage_class?.name||'physical',
+        ailment: md?.meta?.ailment?.name||'none',
+        ailmentChance: typeof md?.meta?.ailment_chance==='number'
+          ? md.meta.ailment_chance : (md?.effect_chance||0),
+        statChanges: Array.isArray(md?.stat_changes)
+          ? md.stat_changes.map(sc=>({stat:sc.stat?.name||'attack',change:sc.change||0})) : [],
+        target: md?.target?.name||'selected-pokemon'
+      };
+    }
+
+    async function buildPokemonTemplate(id){
+      const cached = dexCache[id];
+      if (cached && cached.id===id && cached.name && cached.moves?.length) return structuredClone(cached);
+
+      const api = await fetchJSON(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const level = battleLevel;
+      const stats = {
+        hp:  api.stats.find(s=>s.stat.name==='hp')?.base_stat||50,
+        atk: api.stats.find(s=>s.stat.name==='attack')?.base_stat||50,
+        def: api.stats.find(s=>s.stat.name==='defense')?.base_stat||50
+      };
+
+      const moveEntries = uniqueRandomPick(api.moves||[], 16);
+      const moveNames   = moveEntries.map(m=>m.move?.name).filter(Boolean);
+      const moveDetails = [];
+      for (const mn of moveNames){
+        const d = await fetchMoveDetail(mn);
+        if (d) moveDetails.push(normalizeMove(d));
+        if (moveDetails.length>=4) break;
+      }
+      while (moveDetails.length<4){
+        moveDetails.push({
+          name: moveDetails.length?`tackle-${moveDetails.length+1}`:'tackle',
+          type:'normal',power:40,accuracy:100,pp:35,
+          damageClass:'physical',ailment:'none',ailmentChance:0,statChanges:[],target:'selected-pokemon'
+        });
+      }
+
+      const template = {
+        id: api.id,
+        name: api.name,
+        level,
+        types: (api.types||[]).map(t=>t.type.name),
+        baseStats: stats,
+        battleStats: calcStats(stats,level),
+        frontSprite: getMainSprite(api,false),
+        backSprite: getMainSprite(api,true),
+        moves: moveDetails,
+        canMega: !!megaData[api.id]
+      };
+
+      dexCache[id] = template;
+      saveJSON(DEX_CACHE_KEY, dexCache);
+      return structuredClone(template);
+    }
+
+    async function makeInventoryMon(id){
+      const t = await buildPokemonTemplate(id);
+      // Track in Pokédex
+      if (!state.caughtDex.includes(id)) state.caughtDex.push(id);
+      if (!state.ownedIds.includes(id))   state.ownedIds.push(id);
+      return {
+        uid: uid(), id:t.id, name:t.name, level:t.level,
+        types:t.types, baseStats:t.baseStats, battleStats:t.battleStats,
+        frontSprite:t.frontSprite, backSprite:t.backSprite,
+        moves:t.moves, canMega:t.canMega
+      };
+    }
+
+    async function hydrateInventory(){
+      const fixes = [];
+      for (const mon of state.inventory){
+        if (!mon||!mon.id) continue;
+        if (!mon.moves?.length||!mon.baseStats||!mon.frontSprite||!mon.backSprite){
+          fixes.push((async()=>{
+            const t = await buildPokemonTemplate(mon.id);
+            Object.assign(mon,{
+              name:mon.name||t.name,level:mon.level||t.level,
+              types:mon.types?.length?mon.types:t.types,
+              baseStats:mon.baseStats||t.baseStats,
+              battleStats:mon.battleStats||t.battleStats,
+              frontSprite:mon.frontSprite||t.frontSprite,
+              backSprite:mon.backSprite||t.backSprite,
+              moves:mon.moves?.length?mon.moves:t.moves,
+              canMega:typeof mon.canMega==='boolean'?mon.canMega:t.canMega
+            });
+          })());
+        }
+      }
+      await Promise.all(fixes);
+    }
+
+    async function bootstrapFreshSave(){
+      state.coins = 500;
+      state.inventory = [];
+      state.teamUids = [];
+      state.ownedIds = [];
+      state.caughtDex = [];
+      state.seenDex = [];
+      const ids = [...new Set(starterIds)].slice(0, 8);
+      for (const id of ids){
+        const mon = await makeInventoryMon(id);
+        state.inventory.push(mon);
+      }
+      state.teamUids = state.inventory.slice(0,6).map(m=>m.uid);
+      saveGame();
+    }
+
+    /* ────────────────────────────── TEAM ────────────────────────────── */
+    function getSelectedTeam(){
+      const byUid = new Map(state.inventory.map(m=>[m.uid,m]));
+      return state.teamUids.map(u=>byUid.get(u)).filter(Boolean);
+    }
+
+    function syncTeamFromInventory(){
+      const alive = new Set(state.inventory.map(m=>m.uid));
+      state.teamUids = state.teamUids.filter(u=>alive.has(u));
+      if (state.teamUids.length<6){
+        const fill = state.inventory.map(m=>m.uid).filter(u=>!state.teamUids.includes(u));
+        state.teamUids.push(...fill.slice(0,6-state.teamUids.length));
+      }
+      state.teamUids = state.teamUids.slice(0,6);
+    }
+
+    /* ────────────────────────────── RENDER TEAM ─────────────────────── */
+    function renderInventory(){
+      els.inventoryGrid.innerHTML='';
+      els.inventoryCount.textContent=`${state.inventory.length} Pokémon`;
+
+      if (!state.inventoryVisible){
+        els.inventoryGrid.classList.add('collapsed');
+        els.invToggleBtn.textContent='Mostrar';
+        return;
+      }
+      els.inventoryGrid.classList.remove('collapsed');
+      els.invToggleBtn.textContent='Ocultar';
+
+      state.inventory.forEach(mon=>{
+        const card = document.createElement('button');
+        const selected = state.teamUids.includes(mon.uid);
+        const slot = state.teamUids.indexOf(mon.uid)+1;
+        card.className=`pokemonCard ${selected?'selected':''}`;
+        card.innerHTML=`
+          <div class="pokeTop">
+            <div class="pokeName">#${mon.id} ${capitalize(mon.name)}</div>
+            <div class="pokeLevel">Lv. ${mon.level||battleLevel}</div>
+          </div>
+          <div class="typeRow">${renderTypeChips(mon.types)}</div>
+          ${mon.canMega?`<div style="font-size:.68rem;color:#c4b5fd;font-weight:800;">⚡ MEGA</div>`:''}
+          <div class="miniStats">
+            <div>HP<b>${mon.baseStats.hp}</b></div>
+            <div>ATK<b>${mon.baseStats.atk}</b></div>
+            <div>DEF<b>${mon.baseStats.def}</b></div>
+          </div>
+          ${selected?`<span style="position:absolute;right:12px;bottom:12px;font-size:.72rem;font-weight:800;color:#bfdbfe;">Equipe ${slot}</span>`:''}
+        `;
+        card.addEventListener('click',()=>toggleTeamSelection(mon.uid));
+        els.inventoryGrid.appendChild(card);
+      });
+    }
+
+    function renderSelectedTray(){
+      els.selectedTray.innerHTML='';
+      const team = getSelectedTeam();
+      for (let i=0;i<6;i++){
+        const mon = team[i];
+        const slot = document.createElement('div');
+        slot.className=`slot ${mon?'filled':''}`;
+        slot.innerHTML = mon
+          ? `<small>${i+1}</small><div style="font-size:.72rem;text-transform:capitalize;">${capitalize(mon.name)}</div>`
+          : `<div>Vazio</div>`;
+        els.selectedTray.appendChild(slot);
+      }
+      els.teamCount.textContent = String(team.length);
+      els.startBattleBtn.disabled = team.length!==6;
+    }
+
+    function toggleTeamSelection(uidVal){
+      const idx = state.teamUids.indexOf(uidVal);
+      if (idx>=0){
+        state.teamUids.splice(idx,1);
+      } else {
+        if (state.teamUids.length>=6){
+          log('Equipe cheia! Remova um Pokémon primeiro.','system');
+          return;
+        }
+        state.teamUids.push(uidVal);
+      }
+      saveGame();
+      renderInventory();
+      renderSelectedTray();
+    }
+
+    /* ────────────────────────────── BATTLE CLONE ────────────────────── */
+    function createBattleClone(template, side='player'){
+      const stats = calcStats(template.baseStats, template.level||battleLevel);
+      return {
+        uid: template.uid||uid(),
+        id: template.id,
+        name: template.name,
+        originalName: template.name,
+        displayName: capitalize(template.name),
+        level: template.level||battleLevel,
+        types: [...(template.types||['normal'])],
+        baseOriginalTypes: [...(template.types||['normal'])],
+        baseStats: template.baseStats,
+        battleStats: stats,
+        currentHp: stats.hp,
+        maxHp: stats.hp,
+        frontSprite: template.frontSprite,
+        backSprite: template.backSprite,
+        originalFrontSprite: template.frontSprite,
+        moves: structuredClone(template.moves||[]),
+        buffs: {atk:0,def:0},
+        status: null,
+        statusTurns: 0,
+        canMega: !!template.canMega,
+        megaUsed: false,
+        isMega: false,
+        megaAtkBonus: 0,
+        megaDefBonus: 0,
+        side
+      };
+    }
+
+    function activePlayer(){ return state.playerBattleTeam[state.pIdx]; }
+    function activeEnemy(){  return state.enemyBattle; }
+
+    /* ────────────────────────────── RENDER BATTLE ───────────────────── */
+    function renderStatusArea(mon){
+      if (!mon) return '';
+      const bits=[];
+      if (mon.status){
+        const cls = String(mon.status).toLowerCase();
+        bits.push(`<span class="statusBadge ${cls}">${mon.status}</span>`);
+      }
+      if (mon.buffs?.atk!==0)
+        bits.push(`<span class="buffBadge ${mon.buffs.atk>0?'plus':'minus'}">ATK ${statStageLabel(mon.buffs.atk)}</span>`);
+      if (mon.buffs?.def!==0)
+        bits.push(`<span class="buffBadge ${mon.buffs.def>0?'plus':'minus'}">DEF ${statStageLabel(mon.buffs.def)}</span>`);
+      return bits.join('');
+    }
+
+    function updateHPUI(elFill, elText, mon){
+      const pct = getHpPercent(mon);
+      elFill.style.width=`${pct}%`;
+      elFill.classList.remove('low','mid');
+      const cls=hpClass(pct); if(cls) elFill.classList.add(cls);
+      elText.textContent=`HP ${Math.max(0,mon.currentHp)}/${mon.maxHp}`;
+    }
+
+    function setTypeLabel(el, types){
+      el.innerHTML=(types||[]).map(t=>`<span class="typeChip ${getTypeClass(t)}">${t}</span>`).join(' ');
+    }
+
+    function renderWeatherBadge(){
+      const old = els.arenaEl.querySelector('.weatherBadge');
+      if (old) old.remove();
+      if (state.weather && state.weather.id!=='none'){
+        const badge = document.createElement('div');
+        badge.className='weatherBadge';
+        badge.textContent=`${state.weather.icon} ${state.weather.label}`;
+        els.arenaEl.appendChild(badge);
+      }
+    }
+
+    function renderBattle(){
+      const p = activePlayer();
+      const e = activeEnemy();
+      if (!p||!e) return;
+
+      // Names
+      els.playerName.textContent = p.isMega ? `MEGA ${capitalize(p.originalName)}` : capitalize(p.originalName);
+      els.enemyName.textContent  = e.isMega ? `MEGA ${capitalize(e.originalName)}` : capitalize(e.originalName);
+      els.playerLvText.textContent = `Lv. ${p.level}`;
+      els.enemyLvText.textContent  = `Lv. ${e.level}`;
+
+      // Sprites
+      els.playerSprite.src = p.backSprite||p.frontSprite||'';
+      els.enemySprite.src  = e.frontSprite||e.backSprite||'';
+
+      // Mega glow
+      els.playerSpriteWrap.classList.toggle('megaGlow', !!p.isMega);
+      els.enemySpriteWrap.classList.toggle('megaGlow',  !!e.isMega);
+
+      // HP
+      updateHPUI(els.playerHpFill, els.playerHpText, p);
+      updateHPUI(els.enemyHpFill,  els.enemyHpText,  e);
+
+      // Status
+      els.playerStatusArea.innerHTML = renderStatusArea(p);
+      els.enemyStatusArea.innerHTML  = renderStatusArea(e);
+
+      // Types
+      setTypeLabel(els.playerTypeLabel, p.types);
+      setTypeLabel(els.enemyTypeLabel,  e.types);
+
+      // Weather
+      renderWeatherBadge();
+
+      renderMoveButtons();
+    }
+
+    function renderMoveButtons(){
+      els.moveButtons.innerHTML='';
+      const p = activePlayer();
+      const locked = state.processing || state.battleEnded || state.mode!=='battle';
+
+      if (!p){
+        for (let i=0;i<4;i++){
+          const b=document.createElement('button');
+          b.className='moveBtn type-normal';b.disabled=true;
+          b.innerHTML='<small>---</small><span>---</span>';
+          els.moveButtons.appendChild(b);
+        }
+        return;
+      }
+
+      p.moves.slice(0,4).forEach((move,i)=>{
+        const btn = document.createElement('button');
+        btn.className=`moveBtn ${getTypeClass(move.type)}`;
+        btn.innerHTML=`
+          <small>${capitalize(move.type)} • ${move.power>0?`Pwr ${move.power}`:'Status'} • ${move.damageClass==='special'?'Esp':'Fís'}</small>
+          <span>${capitalize(move.name)}</span>
+        `;
+        btn.disabled=locked;
+        btn.addEventListener('click',()=>playerUseMove(i));
+        els.moveButtons.appendChild(btn);
+      });
+
+      while (els.moveButtons.children.length<4){
+        const f=document.createElement('button');
+        f.className='moveBtn type-normal';f.disabled=true;
+        f.innerHTML='<small>Vazio</small><span>---</span>';
+        els.moveButtons.appendChild(f);
+      }
+
+      // Side buttons
+      els.switchBtn.disabled = locked;
+      els.megaBtn.disabled   = locked || !p.canMega || p.megaUsed;
+      els.megaBtn.textContent= p.megaUsed ? '⚡ Mega ✓' : '⚡ Mega';
+    }
+
+    /* ────────────────────────────── MODAL ───────────────────────────── */
+    function openModal(title, bodyHtml, opts={}){
+      state.modalType = opts.type||'generic';
+      els.modalTitle.textContent=title;
+      els.modalBody.innerHTML=bodyHtml;
+      els.modalOverlay.classList.remove('hidden');
+      els.modalCloseBtn.style.display = opts.canClose===false?'none':'inline-flex';
+      if (opts.onMount) opts.onMount();
+    }
+
+    function closeModal(){
+      els.modalOverlay.classList.add('hidden');
+      els.modalBody.innerHTML='';
+      els.modalTitle.textContent='Modal';
+      state.modalType=null;
+    }
+
+    /* ────────────────────────────── SWITCH MODAL ────────────────────── */
+    function openSwitchModal(forced=false){
+      return new Promise(resolve=>{
+        state.switchResolver=resolve;
+        const cards = state.playerBattleTeam.map((mon,idx)=>{
+          const isCurrent=idx===state.pIdx;
+          const isFainted=mon.currentHp<=0;
+          const disabled=isCurrent||isFainted;
+          const hpPct=getHpPercent(mon);
+          return `
+            <button class="switchCard ${isCurrent?'active':''} ${isFainted?'fainted':''}"
+              data-idx="${idx}" ${disabled?'disabled':''}>
+              <div class="badge">${isCurrent?'EM CAMPO':(isFainted?'FAINTED':'OK')}</div>
+              <div class="pokeName">${capitalize(mon.originalName)}</div>
+              <div class="pokeLevel">Lv. ${mon.level} ${mon.isMega?'• MEGA':''}</div>
+              <div class="typeRow">${renderTypeChips(mon.types)}</div>
+              <div class="hpText" style="justify-content:flex-start;gap:8px;margin-top:auto;">
+                <span>${Math.max(0,mon.currentHp)}/${mon.maxHp}</span>
+                <span style="color:${hpPct<=25?'#f87171':hpPct<=50?'#fcd34d':'#4ade80'}">${hpPct.toFixed(0)}%</span>
+              </div>
+            </button>`;
+        }).join('');
+
+        openModal(forced?'Troca Forçada':'Troca Manual',`
+          <div style="margin-bottom:10px;color:var(--muted);font-size:.92rem;line-height:1.4;">
+            ${forced?'Seu Pokémon desmaiou. Escolha outro para continuar.'
+                    :'Escolha outro Pokémon. A troca manual usa seu turno.'}
+          </div>
+          <div class="switchGrid">${cards}</div>
+        `,{
+          type:'switch',canClose:!forced,
+          onMount:()=>{
+            els.modalBody.querySelectorAll('.switchCard').forEach(btn=>{
+              btn.addEventListener('click',()=>{
+                const idx=Number(btn.getAttribute('data-idx'));
+                const resolver=state.switchResolver;
+                state.switchResolver=null;
+                closeModal();
+                resolve(idx);
+              });
+            });
+          }
+        });
+      });
+    }
+
+    /* ────────────────────────────── MEGA CHOICE MODAL ──────────────── */
+    function openMegaChoiceModal(pokemon){
+      return new Promise(resolve=>{
+        state.megaResolver=resolve;
+        const mData = megaData[pokemon.id];
+        if (!mData || mData.forms.length===1){
+          resolve(mData?.forms[0]||null);
+          return;
+        }
+
+        const cards = mData.forms.map((form,fi)=>`
+          <button class="megaChoiceCard" data-fi="${fi}">
+            <img src="${form.sprite}" alt="${form.label}" />
+            <div class="megaName">${form.label}</div>
+            <div class="megaTypes">${renderTypeChips(form.types)}</div>
+            <div class="megaBonus">+${form.atkBonus} ATK • +${form.defBonus} DEF</div>
+          </button>
+        `).join('');
+
+        openModal('Escolha a Mega Evolução',`
+          <p style="color:var(--muted);font-size:.9rem;margin:0 0 4px;">
+            ${capitalize(pokemon.originalName)} pode mega evoluir de duas formas. Escolha:
+          </p>
+          <div class="megaChoiceGrid">${cards}</div>
+        `,{
+          type:'mega',canClose:false,
+          onMount:()=>{
+            els.modalBody.querySelectorAll('.megaChoiceCard').forEach(btn=>{
+              btn.addEventListener('click',()=>{
+                const fi=Number(btn.getAttribute('data-fi'));
+                const form=mData.forms[fi];
+                const resolver=state.megaResolver;
+                state.megaResolver=null;
+                closeModal();
+                resolve(form);
+              });
+            });
+          }
+        });
+      });
+    }
+
+    /* ────────────────────────────── ENTRY FEE MODAL ─────────────────── */
+    function openEntryFeeModal(){
+      return new Promise(resolve=>{
+        state.feeResolver=resolve;
+        const fees=[];
+        for (let f=50;f<=1000;f+=50) fees.push(f);
+
+        const canAfford = f => state.coins >= f;
+        let selectedFee = state.entryFee;
+        if (!canAfford(selectedFee)) selectedFee=50;
+
+        const feeButtons = fees.map(f=>`
+          <button class="feeBtn ${f===selectedFee?'selected':''} ${!canAfford(f)?'feeDisabled':''}"
+            data-fee="${f}" ${!canAfford(f)?'disabled':''}>
+            ${f}<small>moedas</small>
+          </button>`).join('');
+
+        openModal('💰 Taxa de Entrada',`
+          <p style="color:var(--muted);font-size:.9rem;margin:0 0 8px;">
+            Escolha quanto você quer apostar. O inimigo entra com o mesmo valor — quem vencer leva <b>o dobro</b>!
+          </p>
+          <div class="feeGrid" id="feeGrid">${feeButtons}</div>
+          <div class="feeInfo" id="feeInfo">
+            <div><div class="label">Sua aposta</div><div class="value" id="feeMine">—</div></div>
+            <div><div class="label">Pot total</div><div class="value" id="feePot">—</div></div>
+            <div><div class="label">Ganho líquido</div><div class="value green" id="feeGain">—</div></div>
+          </div>
+          <div style="margin-top:14px;">
+            <button id="confirmFeeBtn" class="btn btnPrimary" style="width:100%;min-height:48px;">
+              ⚔️ Entrar na Batalha
+            </button>
+          </div>
+        `,{
+          type:'fee',canClose:true,
+          onMount:()=>{
+            function updateFeeDisplay(fee){
+              selectedFee=fee;
+              const mine=$('feeMine'); const pot=$('feePot'); const gain=$('feeGain');
+              if(mine)mine.textContent=`${fee}🪙`;
+              if(pot) pot.textContent=`${fee*2}🪙`;
+              if(gain){gain.textContent=`+${fee}🪙`; gain.className='value green';}
+              document.querySelectorAll('.feeBtn').forEach(b=>{
+                b.classList.toggle('selected',Number(b.getAttribute('data-fee'))===fee);
+              });
+            }
+            updateFeeDisplay(selectedFee);
+
+            document.getElementById('feeGrid').addEventListener('click',e=>{
+              const btn=e.target.closest('.feeBtn');
+              if (!btn||btn.disabled) return;
+              const fee=Number(btn.getAttribute('data-fee'));
+              updateFeeDisplay(fee);
+            });
+
+            const confirm=$('confirmFeeBtn');
+            if (confirm){
+              confirm.addEventListener('click',()=>{
+                const resolver=state.feeResolver;
+                state.feeResolver=null;
+                closeModal();
+                resolve(selectedFee);
+              });
+            }
+          }
+        });
+      });
+    }
+
+    /* ────────────────────────────── SHOP MODAL ─────────────────────── */
+    function openShopModal(){
+      if (state.shopBusy) return;
+
+      // Build available pool (exclude already owned IDs)
+      const ownedSet = new Set(state.ownedIds);
+      let pool=[];
+      for (let i=1;i<=GACHA_POOL_MAX;i++){
+        if (!ownedSet.has(i)) pool.push(i);
+      }
+      const remaining=pool.length;
+      const allCaught=remaining===0;
+
+      const body=`
+        <div class="shopWrap">
+          <div class="shopTop">
+            <div class="spinStage"><div id="shopBall" class="pokeball"></div></div>
+            <div class="shopInfo">
+              <h4 style="margin:0;font-size:1rem;">🎰 Gacha Shop — Gen 1 a 5</h4>
+              <p>Gire uma Pokébola por <b>100 moedas</b>. Sem repetições — cada Pokémon novo é único!<br>
+                <span style="color:#4ade80;font-weight:700;">${remaining} Pokémon disponíveis</span> de 649.</p>
+              ${allCaught?`<p style="color:#fcd34d;font-weight:700;">🎉 Você capturou todos os Pokémon!</p>`:`
+                <button id="buySpinBtn" class="btn btnWarn" style="width:100%;min-height:48px;">
+                  Girar por 100 moedas
+                </button>`}
+              <div id="shopResult" class="resultCard"></div>
+            </div>
+          </div>
+        </div>`;
+
+      openModal('Gacha Shop',body,{
+        type:'shop',
+        onMount:()=>{
+          const ball=$('shopBall');
+          const buyBtn=$('buySpinBtn');
+          const result=$('shopResult');
+          if (!buyBtn) return;
+
+          buyBtn.addEventListener('click',async()=>{
+            if (state.shopBusy) return;
+            if (state.coins<100){ log('Moedas insuficientes.','system'); return; }
+
+            // Rebuild pool
+            const ownedNow=new Set(state.ownedIds);
+            const poolNow=[];
+            for (let i=1;i<=GACHA_POOL_MAX;i++) if (!ownedNow.has(i)) poolNow.push(i);
+            if (!poolNow.length){ log('Você já tem todos!','good'); return; }
+
+            state.shopBusy=true;
+            state.coins-=100;
+            saveGame();renderCoins();
+            ball.classList.add('spin');
+            buyBtn.disabled=true;
+            result.classList.remove('show');
+
+            try{
+              const newId=poolNow[Math.floor(Math.random()*poolNow.length)];
+              const mon=await makeInventoryMon(newId);
+              state.inventory.unshift(mon);
+              saveGame();
+              renderInventory();
+              renderSelectedTray();
+              result.innerHTML=`
+                <img src="${mon.frontSprite||mon.backSprite||''}" alt="resultado">
+                <div>
+                  <h4>#${mon.id} ${capitalize(mon.name)}</h4>
+                  <div class="mini">
+                    Tipo(s): ${mon.types.join(', ')}<br>
+                    Base: HP ${mon.baseStats.hp} / ATK ${mon.baseStats.atk} / DEF ${mon.baseStats.def}<br>
+                    ${mon.canMega?'<span style="color:#c4b5fd;font-weight:800;">⚡ Pode Mega Evoluir!</span>':''}
+                  </div>
+                </div>`;
+              result.classList.add('show');
+              log(`Gacha: obteve #${mon.id} ${capitalize(mon.name)}!`,'good');
+            }catch(err){
+              log('Falha ao girar o gacha. Tente novamente.','bad');
+              state.coins+=100;saveGame();renderCoins();
+            }finally{
+              state.shopBusy=false;
+              ball.classList.remove('spin');
+              buyBtn.disabled=false;
+            }
+          });
+        }
+      });
+    }
+
+    /* ────────────────────────────── POKÉDEX MODAL ───────────────────── */
+    function openDexModal(){
+      const caught = new Set(state.caughtDex);
+      const seen   = new Set(state.seenDex);
+      const all    = new Set([...caught,...seen]);
+      const sorted = [...all].sort((a,b)=>a-b);
+
+      const cards = sorted.map(id=>{
+        const t = dexCache[id];
+        const isCaught = caught.has(id);
+        const name = t?.name||`#${id}`;
+        const sprite = t?.frontSprite||'';
+        const types  = t?.types||[];
+        return `
+          <div class="dexCard ${isCaught?'caught':'seen'}">
+            ${sprite?`<img src="${sprite}" alt="${name}">`:`<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">❓</div>`}
+            <div class="dexNum">#${String(id).padStart(3,'0')}</div>
+            <div class="dexName">${capitalize(name)}</div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center;">
+              ${types.map(t=>`<span class="typeChip ${getTypeClass(t)}" style="font-size:.55rem;padding:3px 5px;">${t}</span>`).join('')}
+            </div>
+          </div>`;
+      }).join('');
+
+      openModal('📖 Pokédex',`
+        <div class="dexWrap">
+          <div class="dexStats">
+            <div>
+              <div class="label">Capturados</div>
+              <div class="value" style="color:#4ade80;">${caught.size}</div>
+            </div>
+            <div>
+              <div class="label">Vistos</div>
+              <div class="value" style="color:#60a5fa;">${all.size}</div>
+            </div>
+            <div>
+              <div class="label">Total Gen 1-5</div>
+              <div class="value">649</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;font-size:.72rem;color:var(--muted);font-weight:700;">
+            <span>🟢 Capturado</span><span>🔵 Visto em batalha</span>
+          </div>
+          ${all.size?`<div class="dexGrid">${cards}</div>`
+            :`<div style="text-align:center;padding:32px;color:var(--muted);">Nenhum Pokémon descoberto ainda. Entre em batalha ou use o Gacha!</div>`}
+        </div>`,{type:'dex',canClose:true});
+    }
+
+    /* ────────────────────────────── BATTLE LOGIC ────────────────────── */
+    function applyStatChange(mon, statName, amount){
+      if (!mon.buffs) mon.buffs={atk:0,def:0};
+      const key = statName==='defense'?'def':'atk';
+      mon.buffs[key]=clamp((mon.buffs[key]||0)+amount,-6,6);
+    }
+
+    function maybeApplyAilment(target, move){
+      if (!move||move.ailment==='none'||target.currentHp<=0||target.status) return;
+      const chance=clamp(move.ailmentChance||0,0,100);
+      if (chance<=0) return;
+      if (Math.random()*100>chance) return;
+      const a=String(move.ailment).toLowerCase();
+      if (a==='burn') target.status='BRN';
+      else if (a==='paralysis') target.status='PAR';
+      else if (a==='poison') target.status='PSN';
+      else if (a==='sleep'){ target.status='SLP'; target.statusTurns=1+Math.floor(Math.random()*3); }
+    }
+
+    function damageFormula(move, attacker, defender, typeMult){
+      if (!move||move.power<=0) return 0;
+      const atk = getCurrentAtk(attacker);
+      const def = getCurrentDef(defender);
+      // Weather bonus
+      let weatherMult=1;
+      if (state.weather){
+        if (state.weather.typeBoost  && move.type===state.weather.typeBoost)   weatherMult=1.5;
+        if (state.weather.typePenalty&& move.type===state.weather.typePenalty) weatherMult=0.5;
+      }
+      // Critical hit (10% → 1.5x)
+      const crit = Math.random()<0.10 ? 1.5 : 1;
+      if (crit>1) log('✨ Golpe crítico!','crit');
+      return {
+        dmg: Math.max(1, Math.floor(((move.power*(atk/def))/5+2)*typeMult*weatherMult*crit)),
+        crit: crit>1
+      };
+    }
+
+    function playHitFlash(side){
+      const wrap = side==='player'?els.playerSpriteWrap:els.enemySpriteWrap;
+      wrap.classList.remove('hitFlash');
+      void wrap.offsetWidth;
+      wrap.classList.add('hitFlash');
+      setTimeout(()=>wrap.classList.remove('hitFlash'),300);
+    }
+
+    function chooseBattleMove(mon){
+      const damaging=mon.moves.filter(m=>(m.power||0)>0);
+      const pool=damaging.length?damaging:mon.moves;
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
+
+    function startOfTurnCheck(mon){
+      if (!mon||mon.currentHp<=0) return {canAct:false,reason:'fainted'};
+      if (mon.status==='SLP'){
+        mon.statusTurns=(mon.statusTurns||0)-1;
+        if (mon.statusTurns>0) return {canAct:false,reason:'sleep'};
+        mon.status=null; mon.statusTurns=0;
+        return {canAct:true,message:'acordou'};
+      }
+      if (mon.status==='PAR'&&Math.random()<0.25) return {canAct:false,reason:'par'};
+      return {canAct:true};
+    }
+
+    function applyResidual(mon, label){
+      if (!mon||mon.currentHp<=0) return;
+      let dmg=0;
+      if (mon.status==='BRN') dmg=Math.max(1,Math.floor(mon.maxHp/8));
+      if (mon.status==='PSN') dmg=Math.max(1,Math.floor(mon.maxHp/8));
+      // Weather residual
+      if (state.weather&&state.weather.residualTypes.length){
+        const isImmune=mon.types.some(t=>state.weather.residualTypes.includes(t));
+        if (!isImmune) dmg+=Math.max(1,Math.floor(mon.maxHp/16));
+      }
+      if (dmg>0){
+        mon.currentHp=Math.max(0,mon.currentHp-dmg);
+        log(`${capitalize(mon.originalName)} sofre ${dmg} de dano residual.`,'bad');
+        playHitFlash(label);
+      }
+    }
+
+    async function executeMove(attacker, defender, move, attackerLabel, defenderLabel){
+      if (!move) return;
+      log(`${attacker.isMega?'MEGA ':''} ${capitalize(attacker.originalName)} usou ${capitalize(move.name)}!`,'system');
+      await wait(200);
+
+      const hitChance = typeof move.accuracy==='number'?move.accuracy:100;
+      if (move.power>0&&Math.random()*100>hitChance){
+        log('O golpe errou!','bad');
+        return;
+      }
+
+      const mult = getEffectiveness(move.type, defender.types);
+      if (move.power>0){
+        const {dmg,crit} = damageFormula(move,attacker,defender,mult);
+        defender.currentHp=Math.max(0,defender.currentHp-dmg);
+        playHitFlash(defenderLabel);
+        log(`Causou ${dmg} de dano${crit?' (crítico!)':''}.`,crit?'crit':'good');
+        const eff=formatEffectiveness(mult);
+        if (eff) log(eff, mult>=2?'good':(mult===0?'bad':'system'));
+      } else {
+        log('Nenhum dano (golpe de status).','system');
+      }
+
+      // Stat changes
+      if (move.statChanges?.length){
+        const onSelf=['user','ally-side','user-or-ally','user-and-allies'].includes(move.target);
+        const tgt=onSelf?attacker:defender;
+        move.statChanges.forEach(sc=>{
+          if (sc.change!==0){
+            applyStatChange(tgt,sc.stat,sc.change);
+            const dir=sc.change>0?'subiu':'caiu';
+            log(`${capitalize(tgt.originalName)} ${sc.stat} ${dir}!`,'system');
+          }
+        });
+      }
+
+      maybeApplyAilment(defender,move);
+      renderBattle();
+      await wait(250);
+    }
+
+    /* ── BATTLE FLOW ─────────────────────────────────────────────────── */
+    function checkBattleEnd(){
+      const e=activeEnemy();
+      if (e&&e.currentHp<=0){ battleWon(); return true; }
+      const hasAlive=state.playerBattleTeam.some(m=>m.currentHp>0);
+      if (!hasAlive){ battleLost(); return true; }
+      return false;
+    }
+
+    async function enemyTurn(){
+      const e=activeEnemy();
+      const p=activePlayer();
+      if (!e||!p||state.battleEnded) return;
+
+      const chk=startOfTurnCheck(e);
+      if (!chk.canAct){
+        if (chk.reason==='sleep')  log(`${capitalize(e.originalName)} está dormindo.`,'system');
+        if (chk.reason==='par')    log(`${capitalize(e.originalName)} está paralisado!`,'system');
+        return;
+      }
+      if (chk.message==='acordou') log(`${capitalize(e.originalName)} acordou!`,'system');
+
+      await wait(450);
+      const move=chooseBattleMove(e);
+      await executeMove(e,p,move,'enemy','player');
+    }
+
+    async function endOfRound(){
+      if (state.battleEnded) return;
+      applyResidual(activePlayer(),'player');
+      applyResidual(activeEnemy(),'enemy');
+      renderBattle();
+      checkBattleEnd();
+    }
+
+    async function playerUseMove(index){
+      if (state.processing||state.mode!=='battle'||state.battleEnded) return;
+      const p=activePlayer();
+      const e=activeEnemy();
+      if (!p||!e) return;
+
+      state.processing=true;
+      renderMoveButtons(); // Disable buttons immediately
+
+      // Sleep check
+      if (p.status==='SLP'){
+        p.statusTurns=(p.statusTurns||0)-1;
+        if (p.statusTurns>0){
+          log(`${capitalize(p.originalName)} está dormindo.`,'system');
+          await enemyTurn(); await endOfRound();
+          state.processing=false; renderBattle(); return;
+        }
+        p.status=null; p.statusTurns=0;
+        log(`${capitalize(p.originalName)} acordou!`,'system');
+      } else if (p.status==='PAR'&&Math.random()<0.25){
+        log(`${capitalize(p.originalName)} está paralisado!`,'system');
+        await enemyTurn(); await endOfRound();
+        state.processing=false; renderBattle(); return;
+      }
+
+      const move=p.moves[index];
+      if (!move){ state.processing=false; renderBattle(); return; }
+
+      await executeMove(p,e,move,'player','enemy');
+      if (checkBattleEnd()){ state.processing=false; renderBattle(); return; }
+
+      await enemyTurn();
+      await endOfRound();
+      if (checkBattleEnd()){ state.processing=false; renderBattle(); return; }
+
+      state.processing=false;
+      renderBattle();
+    }
+
+    async function playerManualSwitch(){
+      if (state.processing||state.mode!=='battle'||state.battleEnded) return;
+      state.processing=true;
+      renderMoveButtons();
+      const idx=await openSwitchModal(false);
+      if (typeof idx!=='number'){ state.processing=false; renderBattle(); return; }
+      state.pIdx=idx;
+      const p=activePlayer();
+      log(`Vai, ${capitalize(p.originalName)}!`,'good');
+      saveGame(); renderBattle();
+      await enemyTurn(); await endOfRound();
+      state.processing=false; renderBattle();
+    }
+
+    async function forceSwitch(){
+      if (state.battleEnded) return;
+      const alive=state.playerBattleTeam
+        .map((m,i)=>({m,i})).filter(x=>x.m.currentHp>0&&x.i!==state.pIdx);
+      if (!alive.length){ battleLost(); return; }
+      const idx=await openSwitchModal(true);
+      if (typeof idx!=='number') return;
+      state.pIdx=idx;
+      const p=activePlayer();
+      log(`Vai, ${capitalize(p.originalName)}!`,'good');
+      saveGame(); renderBattle();
+    }
+
+    /* ── MEGA EVOLUTION ──────────────────────────────────────────────── */
+    async function useMega(){
+      if (state.mode!=='battle'||state.processing||state.battleEnded) return;
+      const p=activePlayer();
+      if (!p) return;
+      if (!p.canMega){ log('Este Pokémon não pode mega evoluir.','system'); return; }
+      if (p.megaUsed){ log('Mega evolução já usada!','system'); return; }
+
+      // Choose form (X/Y or single)
+      state.processing=true;
+      renderMoveButtons();
+      const form=await openMegaChoiceModal(p);
+      state.processing=false;
+
+      if (!form){ renderBattle(); return; }
+
+      p.megaUsed=true;
+      p.isMega=true;
+      p.megaAtkBonus=form.atkBonus||50;
+      p.megaDefBonus=form.defBonus||0;
+      p.types=[...form.types];
+      p.displayName=form.label;
+
+      // Update sprite
+      if (form.sprite){
+        p.backSprite=form.sprite;
+        p.frontSprite=form.sprite;
+      }
+
+      log(`${form.label} mega evoluiu! (+${form.atkBonus} ATK, +${form.defBonus} DEF)`,'good');
+      renderBattle();
+    }
+
+    /* ── BATTLE WIN / LOSS ───────────────────────────────────────────── */
+    function battleWon(){
+      state.battleEnded=true;
+      state.processing=false;
+      const pot=state.currentPot;
+      state.coins+=pot;
+      saveGame(); renderCoins();
+      log(`🏆 Vitória! Você ganhou ${pot} moedas!`,'good');
+      setTimeout(()=>{
+        showScreen('team');
+        state.playerBattleTeam=[];
+        state.enemyBattle=null;
+        state.currentPot=0;
+        els.stakeBanner.style.display='none';
+        renderInventory(); renderSelectedTray();
+      },900);
+    }
+
+    function battleLost(){
+      state.battleEnded=true;
+      state.processing=false;
+      const fee=state.entryFee;
+      log(`💀 Derrota! Você perdeu ${fee} moedas.`,'bad');
+      setTimeout(()=>{
+        showScreen('team');
+        state.playerBattleTeam=[];
+        state.enemyBattle=null;
+        state.currentPot=0;
+        els.stakeBanner.style.display='none';
+        renderInventory(); renderSelectedTray();
+      },900);
+    }
+
+    /* ── START BATTLE ────────────────────────────────────────────────── */
+    async function startBattle(){
+      const team=getSelectedTeam();
+      if (team.length!==6){ log('Escolha exatamente 6 Pokémon.','system'); return; }
+
+      // Pick entry fee
+      const fee=await openEntryFeeModal();
+      if (!fee) return; // Modal closed
+
+      if (state.coins<fee){
+        log(`Moedas insuficientes. Você precisa de ${fee} moedas.`,'bad');
+        return;
+      }
+
+      // Deduct fee immediately
+      state.coins-=fee;
+      state.entryFee=fee;
+      state.currentPot=fee*2; // AI matches
+      saveGame(); renderCoins();
+
+      state.processing=true;
+      state.battleEnded=false;
+      state.playerBattleTeam=team.map(m=>createBattleClone(m,'player'));
+      state.pIdx=0;
+
+      // Pick random weather
+      state.weather=WEATHERS[Math.floor(Math.random()*WEATHERS.length)];
+
+      try{
+        const enemyId=1+Math.floor(Math.random()*GACHA_POOL_MAX);
+        const template=await buildPokemonTemplate(enemyId);
+        state.enemyBattle=createBattleClone(template,'enemy');
+
+        // Track seen
+        if (!state.seenDex.includes(enemyId)) state.seenDex.push(enemyId);
+        saveGame();
+
+        showScreen('battle');
+
+        // Show stake banner
+        els.stakeBanner.style.display='flex';
+        els.stakePotDisplay.textContent=`${state.currentPot} moedas`;
+
+        // ── FIX: set processing=false BEFORE renderBattle so buttons work ──
+        state.processing=false;
+        renderBattle();
+
+        log(`Vai, ${capitalize(activePlayer().originalName)}!`,'good');
+        log(`Um ${capitalize(state.enemyBattle.name)} selvagem apareceu! (Aposta: ${fee}x2)`,'system');
+        if (state.weather.id!=='none') log(`${state.weather.icon} ${state.weather.label} começou!`,'system');
+
+      }catch(err){
+        console.error(err);
+        log('Falha ao iniciar batalha. Verifique a conexão.','bad');
+        state.coins+=fee; // Refund
+        saveGame(); renderCoins();
+        state.processing=false;
+        showScreen('team');
+      }
+    }
+
+    /* ────────────────────────────── INVENTORY TOGGLE ────────────────── */
+    function toggleInventory(){
+      state.inventoryVisible=!state.inventoryVisible;
+      renderInventory();
+      saveGame();
+    }
+
+    /* ────────────────────────────── RESET ──────────────────────────── */
+    function resetSave(){
+      if (!confirm('Apagar TUDO? (Moedas, inventário, Pokédex)')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(DEX_CACHE_KEY);
+      location.reload();
+    }
+
+    /* ────────────────────────────── INIT ───────────────────────────── */
+    async function init(){
+      cacheEls();
+      bindEvents();
+
+      const saved=loadJSON(STORAGE_KEY,null);
+      if (saved&&typeof saved==='object'){
+        state.coins     = typeof saved.coins==='number'?saved.coins:500;
+        state.inventory = Array.isArray(saved.inventory)?saved.inventory:[];
+        state.teamUids  = Array.isArray(saved.teamUids)?saved.teamUids:[];
+        state.ownedIds  = Array.isArray(saved.ownedIds)?saved.ownedIds:[];
+        state.caughtDex = Array.isArray(saved.caughtDex)?saved.caughtDex:[];
+        state.seenDex   = Array.isArray(saved.seenDex)?saved.seenDex:[];
+        state.inventoryVisible = saved.inventoryVisible!==false;
+      } else {
+        await bootstrapFreshSave();
+      }
+
+      if (!state.inventory.length){
+        await bootstrapFreshSave();
+      } else {
+        await hydrateInventory();
+        syncTeamFromInventory();
+        // Sync ownedIds from inventory
+        state.inventory.forEach(m=>{ if(m.id&&!state.ownedIds.includes(m.id)) state.ownedIds.push(m.id); });
+        saveGame();
+      }
+
+      renderCoins();
+      renderInventory();
+      renderSelectedTray();
+      log('Sistema pronto. Boa sorte nas batalhas! 🎮','system');
+    }
+
+    function bindEvents(){
+      els.startBattleBtn.addEventListener('click', startBattle);
+      els.openShopBtn.addEventListener('click', openShopModal);
+      els.shopBtn.addEventListener('click', openShopModal);
+      els.switchBtn.addEventListener('click', playerManualSwitch);
+      els.megaBtn.addEventListener('click', useMega);
+      els.dexBtn.addEventListener('click', openDexModal);
+      els.invToggleBtn.addEventListener('click', toggleInventory);
+      els.resetBtn.addEventListener('click', resetSave);
+
+      els.backTeamBtn.addEventListener('click',()=>{
+        if (state.mode==='battle'&&!confirm('Sair da batalha? Você PERDE a aposta!')) return;
+        if (state.mode==='battle'){
+          state.playerBattleTeam=[];
+          state.enemyBattle=null;
+          state.processing=false;
+          state.battleEnded=false;
+          state.currentPot=0;
+          els.stakeBanner.style.display='none';
+        }
+        showScreen('team');
+        renderInventory();
+        renderSelectedTray();
+      });
+
+      els.modalCloseBtn.addEventListener('click',()=>{
+        if (state.modalType==='switch'&&state.switchResolver) return; // Can't close forced switch
+        if (state.modalType==='fee'&&state.feeResolver){ state.feeResolver(null); state.feeResolver=null; }
+        if (state.modalType==='mega'&&state.megaResolver){ state.megaResolver(null); state.megaResolver=null; }
+        closeModal();
+      });
+
+      els.modalOverlay.addEventListener('click',(ev)=>{
+        if (ev.target!==els.modalOverlay) return;
+        if (state.modalType==='switch'&&state.switchResolver) return;
+        if (state.modalType==='fee'&&state.feeResolver){ state.feeResolver(null); state.feeResolver=null; }
+        if (state.modalType==='mega'&&state.megaResolver){ state.megaResolver(null); state.megaResolver=null; }
+        closeModal();
+      });
+
+      window.addEventListener('beforeunload',saveGame);
+    }
+
+    init().catch(err=>{
+      console.error(err);
+      if (els.saveHint) els.saveHint.textContent='Erro ao iniciar. Verifique a conexão.';
+    });
+
+  })();
+  </script>
+</body>
+</html>
